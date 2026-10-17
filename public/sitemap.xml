@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://chipnntech.com/</loc>
+    <lastmod>2026-10-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/unity-hero.jpg</image:loc>
+      <image:title>Unity One Smart Electricity Meter</image:title>
+      <image:caption>Flagship smart electricity meter manufactured by Chipinn Technologies Ltd</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/unity-pro.jpg</image:loc>
+      <image:title>Unity Pro 3-Phase Commercial Smart Meter</image:title>
+      <image:caption>Class 0.2S revenue-grade 3-phase smart grid meter</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/base16-dashboard.jpg</image:loc>
+      <image:title>Base16 School Management Platform</image:title>
+      <image:caption>School management system for K-12 and tertiary institutions</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/base12-thesis.jpg</image:loc>
+      <image:title>Base12 Academic Thesis Writing Engine</image:title>
+      <image:caption>Thesis writing and research engine for 4th-year university seniors</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/solar-labs-1tw.jpg</image:loc>
+      <image:title>Chipinn Labs 1 Terawatt by 2032 Regional Solar Mission</image:title>
+      <image:caption>Regional photovoltaic research targeting 1 Terawatt by 2032</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://chipnntech.com/assets/biogas-nodes.jpg</image:loc>
+      <image:title>Biogas Monitoring Layer 10 Nodes by 2028</image:title>
+      <image:caption>Industrial IoT biogas telemetry layer deploying 10 active nodes by 2028</image:caption>
+    </image:image>
+  </url>
+</urlset>
