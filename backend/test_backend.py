@@ -43,7 +43,7 @@ def test_api_endpoints():
 
     # Invalid STS token length
     res = client.post("/api/sts/redeem", json={"token": "12345"})
-    assert res.status_code == 400
+    assert res.status_code in [400, 422]
 
     print("All API endpoints tested successfully!")
 

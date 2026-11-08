@@ -1,6 +1,6 @@
 """
 GridPulse™ AI FastAPI Service
-Serves real-time smart meter telemetry and machine learning inferences.
+Serves real-time smart meter telemetry and machine learning inferences securely.
 """
 
 from fastapi import FastAPI, HTTPException
@@ -8,22 +8,39 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import random
 import time
+import os
 
 from .ml_engine import engine
 
 app = FastAPI(
     title="Chipinn GridPulse™ AI Engine",
     description="Autonomous AMI machine learning telemetry and anomaly detection service",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=os.getenv("DOCS_URL", "/docs"),
+    redoc_url=None
 )
 
-# Allow CORS for local web development
+# Secure CORS: Specific origins in production, local origins in development
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://chipnntech.com",
+    "https://www.chipnntech.com",
+    "https://chipinntech.com",
+    "https://www.chipinntech.com"
+]
+
+configured_origins = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [o.strip() for o in configured_origins.split(",") if o.strip()] or default_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
 )
 
 
@@ -35,7 +52,7 @@ class TelemetryRequest(BaseModel):
 
 
 class STSTokenRequest(BaseModel):
-    token: str = Field(..., description="20-digit STS recharge token")
+    token: str = Field(..., min_length=20, max_length=25, description="20-digit STS recharge token")
 
 
 @app.get("/")
@@ -43,7 +60,6 @@ def read_root():
     return {
         "service": "Chipinn Technologies — GridPulse™ AI Backend",
         "status": "online",
-        "docs_url": "/docs",
         "endpoints": ["/api/status", "/api/telemetry/live", "/api/evaluate", "/api/sts/redeem"]
     }
 
@@ -56,14 +72,13 @@ def get_status():
             "pytorch": "active (CPU inference)",
             "scikit_learn": "active (IsolationForest Anomaly Detector)"
         },
-        "system_time": time.time()
+        "system_time": int(time.time())
     }
 
 
 @app.get("/api/telemetry/live")
 def get_live_telemetry():
     """Generates a dynamic real-time telemetry frame analyzed by the ML engine."""
-    # Simulate realistic live grid noise around standard 230V / 50Hz nominal
     voltage = round(229.5 + random.uniform(-1.5, 2.0), 1)
     current = round(14.0 + random.uniform(-1.5, 2.5), 1)
     power_factor = round(random.uniform(0.94, 0.98), 2)
@@ -80,7 +95,7 @@ def get_live_telemetry():
 
 @app.post("/api/evaluate")
 def evaluate_custom_telemetry(req: TelemetryRequest):
-    """Evaluates arbitrary smart meter telemetry submitted by the client."""
+    """Evaluates smart meter telemetry with input validation and bounds checking."""
     evaluation = engine.evaluate_telemetry(
         voltage=req.voltage,
         current=req.current,
@@ -97,14 +112,11 @@ def redeem_sts_token(req: STSTokenRequest):
     if len(digits_only) != 20:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid STS token length: expected 20 digits, received {len(digits_only)}"
+            detail="Invalid STS token format: expected 20 numeric digits."
         )
-    
-    # Token accepted: return 50.0 kWh credit
+
     return {
         "success": True,
         "credited_kwh": 50.0,
-        "token": req.token,
         "message": "STS 20-digit token verified and units credited successfully."
     }
-

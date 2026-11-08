@@ -1,14 +1,80 @@
-# Dependencies
-node_modules
+# ==============================================================================
+# Chipinn Technologies — Security-Hardened .gitignore
+# Prevents accidental exposure of environments, credentials, keys, and secrets.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment & Secret Configuration Files (Strictly Ignored)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+*.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.stage
+.env.staging
+
+# Secrets, API Keys & Certificates
+*.key
+*.pem
+*.cert
+*.crt
+*.pfx
+*.p12
+*.token
+*.secret
+*.secrets
+credentials.json
+client_secrets.json
+service-account*.json
+jwt.json
+*.id_rsa
+*.id_ecdsa
+*.id_ed25519
+
+# ------------------------------------------------------------------------------
+# 2. Dependencies & Build Artifacts
+# ------------------------------------------------------------------------------
+node_modules/
 .pnp
 .pnp.js
+dist/
+dist-ssr/
+build/
+.cache/
 
-# Production build artifacts
-dist
-dist-ssr
+# Deployment & Hosting Platforms
+.vercel
+.netlify
+.turbo
 
-# Logs
-logs
+# ------------------------------------------------------------------------------
+# 3. Python & Machine Learning
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite3
+*.db
+
+# ------------------------------------------------------------------------------
+# 4. Logs & Diagnostic Files
+# ------------------------------------------------------------------------------
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -16,38 +82,27 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.env
-
-# Deployment platforms
-.vercel
-.netlify
-.turbo
-
-# Editor & OS files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ------------------------------------------------------------------------------
+# 5. OS & Editor Metadata
+# ------------------------------------------------------------------------------
 .DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-Thumbs.db
-Desktop.ini
+*~
+*.bak
+*.backup
+.idea/
+.vscode/*
+!.vscode/extensions.json
 
-# Design & screenshot raw assets
+# ------------------------------------------------------------------------------
+# 6. Raw Design Backups
+# ------------------------------------------------------------------------------
 screenshots_backup/
 Screenshot *.png
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
