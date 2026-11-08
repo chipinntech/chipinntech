@@ -1,87 +1,42 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
-import MissionSection from './components/MissionSection';
-import GridPulseSection from './components/GridPulseSection';
-import ProductLineupSection from './components/ProductLineupSection';
-import SoftwareSection from './components/SoftwareSection';
-import LabsSection from './components/LabsSection';
-import PilotModal from './components/PilotModal';
-import SpecsDrawer from './components/SpecsDrawer';
+import MasterPlanSection from './components/MasterPlanSection';
+import UnityMeterSection from './components/UnityMeterSection';
+import OrderModal from './components/OrderModal';
 import Footer from './components/Footer';
 
 export default function App() {
-  // Modal states
-  const [pilotModalOpen, setPilotModalOpen] = useState(false);
-  const [pilotProduct, setPilotProduct] = useState('Unity Meter');
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
 
-  const [specsDrawerOpen, setSpecsDrawerOpen] = useState(false);
-
-  const handleOpenPilot = (productName = 'Unity Meter') => {
-    setPilotProduct(productName);
-    setPilotModalOpen(true);
-  };
-
-  const handleOpenSpecs = () => {
-    setSpecsDrawerOpen(true);
+  const handleOpenOrderModal = () => {
+    setOrderModalOpen(true);
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#ffffff' }}>
-      {/* Tesla-style Sticky Blur Navbar */}
-      <Navbar
-        onOpenPilotModal={handleOpenPilot}
-        onOpenSpecs={handleOpenSpecs}
-      />
+    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#04070d' }}>
+      {/* SpaceX Style Minimalist Sticky Navbar */}
+      <Navbar onOpenOrderModal={handleOpenOrderModal} />
 
-      {/* Main Sections */}
+      {/* Main Experience */}
       <main>
-        {/* Fullscreen Hero Carousel */}
-        <HeroSection
-          onOpenSpecs={handleOpenSpecs}
-        />
+        {/* 1. Clean SpaceX-Style Hero: African Dawn Earth, High Contrast, Direct Manifesto */}
+        <HeroSection onOpenOrderModal={handleOpenOrderModal} />
 
-        {/* 1. Our Mission Section */}
-        <MissionSection />
+        {/* 2. The 4-Stage Master Plan: Step-by-Step, Clean Images, Connected with Arrows */}
+        <MasterPlanSection onOpenOrderModal={handleOpenOrderModal} />
 
-        {/* 2. GridPulse Autonomous AMI Platform */}
-        <GridPulseSection
-          onOpenPilotModal={handleOpenPilot}
-        />
-
-        {/* 3. Product Lineup (Unity Meter, Unity Mini, Unity Pro) */}
-        <ProductLineupSection
-          onOpenSpecs={handleOpenSpecs}
-        />
-
-        {/* 4. Software Suite: Base16 (School Management) & Base12 (Thesis Writing Engine for 4th Years) */}
-        <SoftwareSection
-          onOpenPilotModal={handleOpenPilot}
-        />
-
-        {/* 5. Chipinn Labs: Regional Solar (1 TW by 2032) & Biogas Monitoring (10 Nodes by 2028) */}
-        <LabsSection
-          onOpenPilotModal={handleOpenPilot}
-        />
+        {/* 3. Milestone 1 Flagship Showcase: 50/50 Side-by-Side (Unity Meter Image + Value & Order) */}
+        <UnityMeterSection onOpenOrderModal={handleOpenOrderModal} />
       </main>
 
-      {/* Minimalist Footer */}
-      <Footer
-        onOpenSpecs={handleOpenSpecs}
-        onOpenPilotModal={handleOpenPilot}
-      />
+      {/* Footer */}
+      <Footer onOpenOrderModal={handleOpenOrderModal} />
 
-      {/* Overlays */}
-      <PilotModal
-        isOpen={pilotModalOpen}
-        onClose={() => setPilotModalOpen(false)}
-        preselectedProduct={pilotProduct}
-      />
-
-      <SpecsDrawer
-        isOpen={specsDrawerOpen}
-        onClose={() => setSpecsDrawerOpen(false)}
-        onOpenPilot={handleOpenPilot}
+      {/* Direct Order / Reservation Modal */}
+      <OrderModal
+        isOpen={orderModalOpen}
+        onClose={() => setOrderModalOpen(false)}
       />
     </div>
   );

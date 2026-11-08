@@ -1,108 +1,208 @@
 import React from 'react';
-import { Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
 
-export default function Footer({ onOpenSpecs, onOpenPilotModal }) {
+export default function Footer({ onOpenOrderModal }) {
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer
       style={{
-        padding: '50px 24px 50px',
         backgroundColor: '#ffffff',
-        borderTop: '1px solid #f1f2f4',
-        textAlign: 'center',
+        color: '#111827',
+        borderTop: '1px solid #e5e7eb',
+        padding: '80px 24px 40px',
       }}
     >
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        {/* Direct Inquiries & Contact Email */}
-        <div style={{ marginBottom: '24px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 20px',
-              borderRadius: '24px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              fontSize: '13.5px',
-              color: '#171a20',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <Mail size={16} color="#1b5aff" />
-            <span style={{ color: '#64748b' }}>Direct Inquiries & Utility Pilots:</span>
-            <a
-              href="mailto:hello@chipinn.com"
-              style={{
-                color: '#1b5aff',
-                fontWeight: 600,
-                textDecoration: 'none',
-                letterSpacing: '-0.01em',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
-            >
-              hello@chipinn.com
-            </a>
+      <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '48px',
+            marginBottom: '60px',
+          }}
+        >
+          {/* Column 1: Brand Logo Only & Mission */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px' }}>
+              <img
+                src="/assets/chipinn-logo-transparent.png"
+                alt="Chipinn"
+                style={{ height: '34px', width: 'auto', display: 'block' }}
+              />
+            </div>
+
+            <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.6, marginBottom: '20px' }}>
+              Making energy intelligent, accessible, and abundant. Starting in Ghana with an unapologetic 3-year mission: eliminate Dumsor and drop electricity prices to under GH₵1 per kWh.
+            </p>
+
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1b5aff', fontWeight: 600 }}>
+              <MapPin size={16} />
+              <span>Accra, Ghana</span>
+            </div>
+          </div>
+
+          {/* Column 2: Navigation Links */}
+          <div>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#111827', marginBottom: '16px' }}>
+              Navigation
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+              <button
+                onClick={() => scrollTo('hero')}
+                style={{ textAlign: 'left', color: '#4b5563', transition: 'color 0.2s', fontWeight: 500 }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
+              >
+                Mission
+              </button>
+              <button
+                onClick={() => scrollTo('masterplan')}
+                style={{ textAlign: 'left', color: '#4b5563', transition: 'color 0.2s', fontWeight: 500 }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
+              >
+                The 3-Year Master Plan
+              </button>
+              <button
+                onClick={() => scrollTo('unity-meter')}
+                style={{ textAlign: 'left', color: '#4b5563', transition: 'color 0.2s', fontWeight: 500 }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
+              >
+                Unity Meter (3-in-1 Sub-meter)
+              </button>
+              <button
+                onClick={onOpenOrderModal}
+                style={{ textAlign: 'left', color: '#1b5aff', fontWeight: 600 }}
+              >
+                Order Unity Meter — GH₵1,250
+              </button>
+            </div>
+          </div>
+
+          {/* Column 3: The 3-Year Commitments */}
+          <div>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#111827', marginBottom: '16px' }}>
+              Our 3-Year Target
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+              <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <strong style={{ color: '#16a34a', display: 'block', fontSize: '16px', marginBottom: '2px' }}>&lt; GH₵1.00 / kWh</strong>
+                <span style={{ color: '#64748b' }}>Affordable clean electricity within 36 months.</span>
+              </div>
+              <div style={{ backgroundColor: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <strong style={{ color: '#1b5aff', display: 'block', fontSize: '16px', marginBottom: '2px' }}>Zero Dumsor</strong>
+                <span style={{ color: '#64748b' }}>Eliminating utility bypasses and expanding distributed solar.</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 4: Verified Contact Info */}
+          <div>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#111827', marginBottom: '16px' }}>
+              Get In Touch
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+              <a
+                href="tel:+233502560760"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  color: '#1f2937',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#1f2937')}
+              >
+                <Phone size={16} color="#1b5aff" />
+                <span>+233 50 256 0760</span>
+              </a>
+
+              <a
+                href="mailto:hello@chipinntech.com"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  color: '#1f2937',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#1f2937')}
+              >
+                <Mail size={16} color="#1b5aff" />
+                <span>hello@chipinntech.com</span>
+              </a>
+
+              <button
+                onClick={onOpenOrderModal}
+                style={{
+                  marginTop: '10px',
+                  backgroundColor: '#1b5aff',
+                  color: '#ffffff',
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  transition: 'background-color 0.2s',
+                  boxShadow: '0 2px 8px rgba(27, 90, 255, 0.25)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1246d6')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1b5aff')}
+              >
+                Order / Reserve Meter
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Certification badges bar */}
+        {/* Bottom Bar */}
         <div
           style={{
+            borderTop: '1px solid #e5e7eb',
+            paddingTop: '28px',
             display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 'clamp(14px, 3vw, 36px)',
             flexWrap: 'wrap',
-            marginBottom: '30px',
-            fontSize: '12px',
-            color: '#71747a',
-            fontWeight: 500,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            fontSize: '13px',
+            color: '#6b7280',
           }}
         >
-          <span>✓ IEC 62053-22 Class 0.2S</span>
-          <span>✓ DLMS / COSEM Certified</span>
-          <span>✓ STS Association Compliant</span>
-          <span>✓ ISO 9001 / ISO 27001</span>
-          <span>✓ KEMA Type Tested</span>
-        </div>
+          <div>
+            © {new Date().getFullYear()} Chipinn Technologies Ltd. Built for Ghana & Africa.
+          </div>
 
-        {/* Minimal Navigation Links (Tesla Style) */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 'clamp(12px, 2.5vw, 24px)',
-            flexWrap: 'wrap',
-            fontSize: '12px',
-            fontWeight: 500,
-            color: '#5c5e62',
-            marginBottom: '20px',
-          }}
-        >
-          <span>Chipinn Technologies Ltd © 2026</span>
-          <a href="#mission" style={{ color: 'inherit' }}>Our Mission</a>
-          <a href="#hero" style={{ color: 'inherit' }}>Unity Meters</a>
-          <a href="https://base16schools.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Base16 Schools</a>
-          <a href="#base12" style={{ color: 'inherit' }}>Base12 (Thesis Engine)</a>
-          <a href="#solar-lab" style={{ color: 'inherit' }}>Solar Labs (1 TW 2032)</a>
-          <a href="#biogas-lab" style={{ color: 'inherit' }}>Biogas Nodes (2028)</a>
-          <a href="#gridpulse" style={{ color: 'inherit' }}>GridPulse™ AMI</a>
-          <button onClick={() => onOpenSpecs('all')} style={{ color: 'inherit', fontSize: '12px' }}>
-            Metrology Specs
-          </button>
-          <button onClick={() => onOpenPilotModal('Partnership')} style={{ color: 'inherit', fontSize: '12px' }}>
-            Partnerships
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#6b7280',
+              fontSize: '12px',
+              fontWeight: 500,
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
+          >
+            <span>Back to top</span>
+            <ArrowUp size={14} />
           </button>
         </div>
-
-        <p style={{ fontSize: '11px', color: '#9ca3af', maxWidth: '640px', margin: '0 auto', lineHeight: 1.5 }}>
-          Chipinn Technologies Ltd is a pioneering grid hardware and intelligent smart metering company. 
-          Unity Meters™ and GridPulse™ are registered trademarks. All rights reserved.
-        </p>
       </div>
     </footer>
   );

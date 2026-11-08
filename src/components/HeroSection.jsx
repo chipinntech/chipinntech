@@ -1,306 +1,170 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { Play } from 'lucide-react';
 
-const slides = [
-  {
-    id: 'unity-meter',
-    title: 'Unity Meter',
-    subtitle: 'From $58 · Multi-Tenant Smart Metering',
-    image: '/assets/unity-meter-widescreen.jpg',
-    primaryCta: 'Order Now',
-    secondaryCta: 'Learn More',
-  },
-  {
-    id: 'meter-guard',
-    title: 'Meter Guard™',
-    subtitle: 'Integrated Over & Under-Voltage Protection',
-    image: '/assets/unity-meter-guard.jpg',
-    primaryCta: 'Order Now',
-    secondaryCta: 'Learn More',
-  },
-  {
-    id: 'unity-mini',
-    title: 'Unity Mini',
-    subtitle: 'From $34 · Compact Sub-Metering (Non-Relay)',
-    image: '/assets/unity-mini.jpg',
-    primaryCta: 'Order Now',
-    secondaryCta: 'Learn More',
-  },
-  {
-    id: 'tenant-split',
-    title: 'Multi-Tenant Splitting',
-    subtitle: 'Independent Tenant Relays & Prepay Billing',
-    image: '/assets/unity-tenant-split.jpg',
-    primaryCta: 'Order Now',
-    secondaryCta: 'Learn More',
-  },
-];
-
-export default function HeroSection({ onOpenSpecs }) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(() => {
-      setCurrentIdx((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
-  const prevSlide = () => {
-    setCurrentIdx((prev) => (prev - 1 + slides.length) % slides.length);
+export default function HeroSection({ onOpenOrderModal }) {
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
-
-  const nextSlide = () => {
-    setCurrentIdx((prev) => (prev + 1) % slides.length);
-  };
-
-  const current = slides[currentIdx];
 
   return (
     <section
       id="hero"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
       style={{
         position: 'relative',
-        width: '100%',
-        height: '100vh',
-        minHeight: '680px',
+        minHeight: '100vh',
+        backgroundColor: '#04070d',
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
         overflow: 'hidden',
-        paddingTop: '86px',
-        paddingBottom: '40px',
-        backgroundColor: '#0a0c10',
+        color: '#ffffff',
+        paddingTop: '80px',
+        paddingBottom: '60px',
       }}
     >
-      {/* Background Images Carousel */}
-      {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: index === currentIdx ? 1 : 0,
-            transition: 'opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 1.1s cubic-bezier(0.16, 1, 0.3, 1)',
-            transform: index === currentIdx ? 'scale(1)' : 'scale(1.03)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        >
-          <img
-            src={slide.image}
-            alt={slide.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center center',
-            }}
-          />
-          {/* Subtle Tesla Top & Bottom Contrast Vignette */}
+      {/* 100% Raw, Natural Hero Background Image — ZERO Overlays or Dark Masks */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'url(/assets/hero-africa-dawn.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 45%',
+          backgroundRepeat: 'no-repeat',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Content Container (Positioned Cleanly Without Obscuring the Earth) */}
+      <div
+        style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '0 36px',
+          position: 'relative',
+          zIndex: 2,
+          width: '100%',
+        }}
+      >
+        <div style={{ maxWidth: '720px' }}>
+          {/* Tag */}
           <div
             style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 18%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.65) 100%)',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: '#38bdf8',
+              marginBottom: '10px',
+              textShadow: '0 2px 10px rgba(0, 0, 0, 0.95)',
             }}
-          />
-        </div>
-      ))}
+          >
+            The 3-Year Master Plan · Ghana
+          </div>
 
-      {/* Top Header: Pure Tesla Minimalist Title & Subtitle */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          textAlign: 'center',
-          padding: '20px 24px 0',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 'clamp(34px, 4.5vw, 50px)',
-            fontWeight: 600,
-            color: '#ffffff',
-            letterSpacing: '-0.02em',
-            margin: '0 0 6px 0',
-            textShadow: '0 2px 14px rgba(0,0,0,0.45)',
-          }}
-        >
-          {current.title}
-        </h1>
-
-        <p
-          style={{
-            fontSize: 'clamp(15px, 1.6vw, 18px)',
-            fontWeight: 400,
-            color: 'rgba(255, 255, 255, 0.92)',
-            textShadow: '0 1px 8px rgba(0,0,0,0.5)',
-            margin: 0,
-          }}
-        >
-          {current.subtitle}
-        </p>
-      </div>
-
-      {/* Navigation Arrows */}
-      <button
-        onClick={prevSlide}
-        aria-label="Previous Slide"
-        style={{
-          position: 'absolute',
-          left: '24px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 15,
-          width: '42px',
-          height: '42px',
-          borderRadius: '50%',
-          backgroundColor: 'rgba(255, 255, 255, 0.18)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.18)';
-        }}
-      >
-        <ChevronLeft size={22} />
-      </button>
-
-      <button
-        onClick={nextSlide}
-        aria-label="Next Slide"
-        style={{
-          position: 'absolute',
-          right: '24px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 15,
-          width: '42px',
-          height: '42px',
-          borderRadius: '50%',
-          backgroundColor: 'rgba(255, 255, 255, 0.18)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.18)';
-        }}
-      >
-        <ChevronRight size={22} />
-      </button>
-
-      {/* Bottom Action Area: Tesla Dual Buttons + Dots */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: '100%',
-          maxWidth: '560px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '18px',
-          padding: '0 24px',
-        }}
-      >
-        {/* Dual Buttons (Order Now & Learn More) */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '16px',
-            width: '100%',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <a
-            href="https://unitymeters.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary"
+          {/* Balanced, Sleek Headline */}
+          <h1
             style={{
-              flex: '1 1 200px',
-              maxWidth: '240px',
-              height: '42px',
-              fontSize: '14px',
-              fontWeight: 500,
-              borderRadius: '6px',
-              display: 'inline-flex',
+              fontSize: 'clamp(32px, 4.4vw, 54px)',
+              fontWeight: 800,
+              lineHeight: 1.08,
+              letterSpacing: '-0.02em',
+              color: '#ffffff',
+              textTransform: 'uppercase',
+              marginBottom: '14px',
+              fontFamily: 'var(--font-display, inherit)',
+              textShadow: '0 3px 20px rgba(0, 0, 0, 0.95), 0 1px 4px rgba(0, 0, 0, 0.9)',
+            }}
+          >
+            Making Energy <br />
+            Abundant
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            style={{
+              fontSize: 'clamp(15px, 1.6vw, 18px)',
+              lineHeight: 1.5,
+              color: '#f1f5f9',
+              marginBottom: '26px',
+              fontWeight: 400,
+              maxWidth: '580px',
+              textShadow: '0 2px 14px rgba(0, 0, 0, 0.95)',
+            }}
+          >
+            Our 3-year mission: eliminate Dumsor and drive electricity in Ghana to <strong>less than GH₵1 per kWh</strong>. Starting from the compound house, scaling to the national grid.
+          </p>
+
+          {/* Action Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '12px',
               alignItems: 'center',
-              justifyContent: 'center',
-              textDecoration: 'none',
             }}
           >
-            {current.primaryCta}
-          </a>
-
-          <button
-            onClick={() => onOpenSpecs(current.id)}
-            className="btn btn-glass"
-            style={{
-              flex: '1 1 200px',
-              maxWidth: '240px',
-              height: '42px',
-              fontSize: '14px',
-              fontWeight: 500,
-              borderRadius: '6px',
-              backgroundColor: 'rgba(255, 255, 255, 0.88)',
-              color: '#171a20',
-            }}
-          >
-            {current.secondaryCta}
-          </button>
-        </div>
-
-        {/* Carousel Dots */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          {slides.map((_, dotIdx) => (
             <button
-              key={dotIdx}
-              onClick={() => setCurrentIdx(dotIdx)}
-              aria-label={`Go to slide ${dotIdx + 1}`}
+              onClick={onOpenOrderModal}
               style={{
-                width: dotIdx === currentIdx ? '24px' : '8px',
-                height: '8px',
+                backgroundColor: '#ffffff',
+                color: '#05070c',
+                padding: '13px 26px',
                 borderRadius: '4px',
-                backgroundColor: dotIdx === currentIdx ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                transition: 'all 0.3s ease',
-                padding: 0,
-                border: 'none',
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5)',
+                transition: 'all 0.2s ease',
               }}
-            />
-          ))}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#38bdf8';
+                e.currentTarget.style.color = '#05070c';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.color = '#05070c';
+              }}
+            >
+              <span>Order Unity Meter — GH₵1,250</span>
+              <Play size={11} fill="currentColor" />
+            </button>
+
+            <button
+              onClick={() => scrollTo('masterplan')}
+              style={{
+                backgroundColor: 'rgba(5, 7, 12, 0.65)',
+                color: '#ffffff',
+                padding: '13px 24px',
+                borderRadius: '4px',
+                fontSize: '13px',
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                border: '1px solid rgba(255, 255, 255, 0.45)',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 18px rgba(0, 0, 0, 0.5)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#ffffff';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.45)';
+                e.currentTarget.style.backgroundColor = 'rgba(5, 7, 12, 0.65)';
+              }}
+            >
+              The Master Plan ↓
+            </button>
+          </div>
         </div>
       </div>
     </section>
