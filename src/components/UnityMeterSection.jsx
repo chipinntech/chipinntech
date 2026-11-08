@@ -23,6 +23,7 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
   return (
     <section
       id="unity-meter"
+      className="unity-section-container"
       style={{
         padding: '120px 24px',
         backgroundColor: '#060911',
@@ -32,7 +33,7 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
     >
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         {/* Section Header */}
-        <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 70px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 60px' }}>
           <div
             style={{
               fontSize: '12px',
@@ -48,7 +49,7 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
 
           <h2
             style={{
-              fontSize: 'clamp(32px, 4.4vw, 52px)',
+              fontSize: 'clamp(28px, 4vw, 48px)',
               fontWeight: 800,
               lineHeight: 1.15,
               color: '#ffffff',
@@ -61,21 +62,22 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
             <span style={{ color: '#38bdf8' }}>Zero Fights.</span>
           </h2>
 
-          <p style={{ fontSize: '18px', color: '#94a3b8', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(15px, 1.6vw, 18px)', color: '#94a3b8', lineHeight: 1.6 }}>
             Instead of buying 3 separate meters and paying high installation fees, the 3-in-1 Unity Meter gives every tenant independent sub-metering, balances, and top-ups from one sleek device.
           </p>
         </div>
 
         {/* 50/50 Side-by-Side: Image on one side, Content on the other */}
         <div
+          className="unity-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '56px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '48px',
             alignItems: 'center',
           }}
         >
-          {/* Left Column: Unity Meter Clean Hardware Image */}
+          {/* Left Column: Unity Meter Hardware Image */}
           <div
             style={{
               position: 'relative',
@@ -86,7 +88,7 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
               boxShadow: '0 24px 60px rgba(0, 0, 0, 0.4)',
             }}
           >
-            <div style={{ position: 'relative', height: '520px', width: '100%' }}>
+            <div className="unity-image-box" style={{ position: 'relative', height: '480px', width: '100%' }}>
               <img
                 src="/assets/unity-meter-widescreen.jpg"
                 alt="Chipinn Unity Meter"
@@ -112,26 +114,26 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '24px',
-                  left: '24px',
-                  right: '24px',
+                  bottom: '18px',
+                  left: '18px',
+                  right: '18px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  backgroundColor: 'rgba(11, 16, 27, 0.85)',
+                  backgroundColor: 'rgba(11, 16, 27, 0.88)',
                   backdropFilter: 'blur(12px)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '16px',
-                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  padding: '12px 16px',
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Design</div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>3-in-1 Compact DIN Rail</div>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Design</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>3-in-1 Compact DIN Rail</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Compatibility</div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#38bdf8' }}>STS Token & Mobile Money</div>
+                  <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Top-Up</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8' }}>STS Token & MoMo</div>
                 </div>
               </div>
             </div>
@@ -141,26 +143,27 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
           <div>
             {/* The Price Strikethrough Comparison Box */}
             <div
+              className="price-banner"
               style={{
                 backgroundColor: '#0c121e',
                 border: '1px solid #1e2c44',
                 borderRadius: '20px',
-                padding: '28px 30px',
-                marginBottom: '32px',
+                padding: '24px 26px',
+                marginBottom: '28px',
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '20px',
+                gap: '16px',
               }}
             >
               <div>
-                <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                <div style={{ fontSize: '12px', color: '#94a3b8' }}>
                   Buying 3 Separate Meters:
                 </div>
                 <div
                   style={{
-                    fontSize: '24px',
+                    fontSize: '22px',
                     fontWeight: 600,
                     color: '#ef4444',
                     textDecoration: 'line-through',
@@ -171,26 +174,26 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                 </div>
               </div>
 
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase' }}>
                   Unity Meter (3-in-1):
                 </div>
-                <div style={{ fontSize: '38px', fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
+                <div style={{ fontSize: '34px', fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
                   GH₵1,250
                 </div>
-                <div style={{ fontSize: '12px', color: '#a7f3d0', marginTop: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#a7f3d0', marginTop: '3px' }}>
                   Save GH₵4,750 on day one
                 </div>
               </div>
             </div>
 
             {/* Feature List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <div
                   style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '30px',
+                    height: '30px',
                     borderRadius: '8px',
                     backgroundColor: 'rgba(56, 189, 248, 0.12)',
                     display: 'flex',
@@ -199,23 +202,23 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                     flexShrink: 0,
                   }}
                 >
-                  <Check size={18} color="#38bdf8" />
+                  <Check size={16} color="#38bdf8" />
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
+                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
                     Independent Tenant Relays (60A)
                   </h4>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
                     When Room 1 runs out of credit, only Room 1 disconnects. Tenants 2 and 3 remain powered with zero disruption.
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <div
                   style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '30px',
+                    height: '30px',
                     borderRadius: '8px',
                     backgroundColor: 'rgba(56, 189, 248, 0.12)',
                     display: 'flex',
@@ -224,23 +227,23 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                     flexShrink: 0,
                   }}
                 >
-                  <Smartphone size={18} color="#38bdf8" />
+                  <Smartphone size={16} color="#38bdf8" />
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
+                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
                     MTN MoMo & STS Token Recharge
                   </h4>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
                     Tenants buy and load their own units directly on their phones. Landlords no longer have to collect money or calculate bills.
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <div
                   style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '30px',
+                    height: '30px',
                     borderRadius: '8px',
                     backgroundColor: 'rgba(56, 189, 248, 0.12)',
                     display: 'flex',
@@ -249,13 +252,13 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                     flexShrink: 0,
                   }}
                 >
-                  <ShieldCheck size={18} color="#38bdf8" />
+                  <ShieldCheck size={16} color="#38bdf8" />
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
-                    Anti-Tamper & Physical Bypass Lock
+                  <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
+                    Anti-Tamper & Bypass Protection
                   </h4>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
                     Integrated magnetic and physical tamper sensing immediately trips and reports line tapping.
                   </p>
                 </div>
@@ -268,12 +271,12 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                 backgroundColor: '#0a0e17',
                 border: '1px solid #1b263b',
                 borderRadius: '16px',
-                padding: '20px',
-                marginBottom: '32px',
+                padding: '18px',
+                marginBottom: '26px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase' }}>
                   Live 3-in-1 Channels
                 </span>
                 {topUpFeedback && (
@@ -292,14 +295,14 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       backgroundColor: '#101624',
-                      padding: '10px 14px',
+                      padding: '10px 12px',
                       borderRadius: '8px',
                       fontSize: '13px',
                     }}
                   >
                     <div>
                       <span style={{ color: '#ffffff', fontWeight: 600 }}>{c.name}</span>
-                      <span style={{ color: '#38bdf8', marginLeft: '10px', fontWeight: 700 }}>{c.balance} kWh</span>
+                      <span style={{ color: '#38bdf8', marginLeft: '8px', fontWeight: 700 }}>{c.balance} kWh</span>
                     </div>
                     <button
                       onClick={() => handleTopUp(c.id)}
@@ -307,7 +310,7 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
                         backgroundColor: 'rgba(56, 189, 248, 0.15)',
                         color: '#38bdf8',
                         border: '1px solid rgba(56, 189, 248, 0.3)',
-                        padding: '4px 10px',
+                        padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
                         fontWeight: 600,
@@ -321,31 +324,30 @@ export default function UnityMeterSection({ onOpenOrderModal }) {
               </div>
             </div>
 
-            {/* Big SpaceX-Style Order Button */}
+            {/* Order Button */}
             <button
               onClick={onOpenOrderModal}
               style={{
                 width: '100%',
                 backgroundColor: '#1b5aff',
                 color: '#ffffff',
-                padding: '18px 32px',
+                padding: '16px 28px',
                 borderRadius: '6px',
                 fontWeight: 700,
-                fontSize: '15px',
+                fontSize: '14px',
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '12px',
-                transition: 'background-color 0.2s',
+                gap: '10px',
                 boxShadow: '0 8px 30px rgba(27, 90, 255, 0.45)',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1246d6')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#1b5aff')}
             >
               <span>Order Unity Meter Now — GH₵1,250</span>
-              <ArrowRight size={18} />
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>

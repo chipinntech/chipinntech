@@ -56,6 +56,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
   return (
     <section
       id="masterplan"
+      className="masterplan-container"
       style={{
         padding: '120px 24px',
         backgroundColor: '#04070d',
@@ -81,13 +82,13 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
           <h2
             style={{
-              fontSize: 'clamp(34px, 4.8vw, 56px)',
+              fontSize: 'clamp(30px, 4.4vw, 54px)',
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
               color: '#ffffff',
               textTransform: 'uppercase',
-              marginBottom: '20px',
+              marginBottom: '18px',
             }}
           >
             How We Drop Power <br />
@@ -102,7 +103,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
             </span>
           </h2>
 
-          <p style={{ fontSize: '18px', color: '#94a3b8', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(15px, 1.6vw, 18px)', color: '#94a3b8', lineHeight: 1.6 }}>
             A systematic, 4-stage sequential roadmap to eliminate household billing disputes, end utility grid theft, and make clean energy abundant across Ghana.
           </p>
         </div>
@@ -113,6 +114,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
             <div key={stage.num} style={{ position: 'relative' }}>
               {/* Stage Card */}
               <div
+                className="stage-card"
                 style={{
                   backgroundColor: '#0b101b',
                   border: '1px solid #1a2538',
@@ -120,15 +122,16 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                   overflow: 'hidden',
                   boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                   alignItems: 'stretch',
                 }}
               >
                 {/* Image Side */}
                 <div
+                  className="stage-image-box"
                   style={{
                     position: 'relative',
-                    minHeight: '380px',
+                    minHeight: '340px',
                     backgroundColor: '#070a12',
                     order: idx % 2 === 1 ? 2 : 1,
                   }}
@@ -146,12 +149,12 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                   <div
                     style={{
                       position: 'absolute',
-                      top: '20px',
-                      left: '20px',
+                      top: '16px',
+                      left: '16px',
                       backgroundColor: 'rgba(5, 7, 12, 0.75)',
                       backdropFilter: 'blur(8px)',
                       border: '1px solid rgba(255, 255, 255, 0.15)',
-                      padding: '6px 14px',
+                      padding: '5px 12px',
                       borderRadius: '9999px',
                       fontSize: '11px',
                       fontWeight: 700,
@@ -166,8 +169,9 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
                 {/* Content Side */}
                 <div
+                  className="stage-content-box stage-content"
                   style={{
-                    padding: '44px 38px',
+                    padding: '40px 36px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -176,7 +180,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                 >
                   <div
                     style={{
-                      fontSize: '12px',
+                      fontSize: '11px',
                       fontWeight: 700,
                       color: '#38bdf8',
                       letterSpacing: '0.1em',
@@ -189,10 +193,10 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
                   <h3
                     style={{
-                      fontSize: 'clamp(24px, 2.5vw, 32px)',
+                      fontSize: 'clamp(20px, 2.2vw, 28px)',
                       fontWeight: 700,
                       color: '#ffffff',
-                      lineHeight: 1.2,
+                      lineHeight: 1.25,
                       marginBottom: '10px',
                     }}
                   >
@@ -201,10 +205,10 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
                   <div
                     style={{
-                      fontSize: '15px',
+                      fontSize: '14px',
                       color: '#34d399',
                       fontWeight: 500,
-                      marginBottom: '18px',
+                      marginBottom: '16px',
                     }}
                   >
                     {stage.headline}
@@ -212,10 +216,10 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
                   <p
                     style={{
-                      fontSize: '15px',
+                      fontSize: '14px',
                       color: '#94a3b8',
-                      lineHeight: 1.65,
-                      marginBottom: '22px',
+                      lineHeight: 1.6,
+                      marginBottom: '20px',
                     }}
                   >
                     {stage.desc}
@@ -226,11 +230,11 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                       backgroundColor: '#060911',
                       border: '1px solid #162032',
                       borderRadius: '12px',
-                      padding: '16px',
+                      padding: '14px',
                       fontSize: '13px',
                       color: '#cbd5e1',
                       lineHeight: 1.5,
-                      marginBottom: stage.cta ? '22px' : 0,
+                      marginBottom: stage.cta ? '20px' : 0,
                     }}
                   >
                     <strong style={{ color: '#ffffff' }}>Target Impact:</strong> {stage.impact}
@@ -243,20 +247,20 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                         style={{
                           backgroundColor: '#1b5aff',
                           color: '#ffffff',
-                          padding: '14px 26px',
+                          padding: '13px 24px',
                           borderRadius: '8px',
                           fontWeight: 700,
-                          fontSize: '14px',
+                          fontSize: '13px',
                           letterSpacing: '0.04em',
                           textTransform: 'uppercase',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '10px',
+                          gap: '8px',
                           boxShadow: '0 4px 20px rgba(27, 90, 255, 0.4)',
                         }}
                       >
                         <span>{stage.cta}</span>
-                        <ArrowRight size={16} />
+                        <ArrowRight size={15} />
                       </button>
                     </div>
                   )}
@@ -271,14 +275,14 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '36px 0',
+                    padding: '30px 0',
                     position: 'relative',
                   }}
                 >
                   <div
                     style={{
                       width: '2px',
-                      height: '32px',
+                      height: '24px',
                       background: 'linear-gradient(to bottom, #1b5aff, #38bdf8)',
                     }}
                   />
@@ -289,21 +293,22 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
                       gap: '8px',
                       backgroundColor: '#0c121e',
                       border: '1px solid #1e2c44',
-                      padding: '6px 18px',
+                      padding: '6px 16px',
                       borderRadius: '9999px',
-                      fontSize: '12px',
+                      fontSize: '11px',
                       fontWeight: 600,
                       color: '#38bdf8',
-                      margin: '10px 0',
+                      margin: '8px 0',
+                      textAlign: 'center',
                     }}
                   >
                     <span>{stage.connectorText}</span>
-                    <ArrowDown size={14} />
+                    <ArrowDown size={13} />
                   </div>
                   <div
                     style={{
                       width: '2px',
-                      height: '32px',
+                      height: '24px',
                       background: 'linear-gradient(to bottom, #38bdf8, #1b5aff)',
                     }}
                   />

@@ -259,3 +259,88 @@ h1, h2, h3, h4, h5, h6 {
     display: flex !important;
   }
 }
+
+
+/* ==========================================================================
+   Mobile Responsiveness Enhancements (Screens <= 768px and <= 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Navbar */
+  .header-nav {
+    padding: 12px 18px !important;
+  }
+  .nav-order-text-full {
+    display: none !important;
+  }
+  .nav-order-text-short {
+    display: inline !important;
+  }
+
+  /* Hero Section */
+  .hero-container {
+    padding: 0 18px !important;
+  }
+  .hero-buttons {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  .hero-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* Master Plan Section */
+  .masterplan-container {
+    padding: 60px 16px !important;
+  }
+  .stage-card {
+    grid-template-columns: 1fr !important;
+  }
+  .stage-content {
+    padding: 28px 18px !important;
+  }
+  .stage-image-box {
+    min-height: 240px !important;
+    height: 240px !important;
+    order: 1 !important;
+  }
+  .stage-content-box {
+    order: 2 !important;
+  }
+
+  /* Unity Meter Section */
+  .unity-section-container {
+    padding: 60px 16px !important;
+  }
+  .unity-grid {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+  .unity-image-box {
+    height: 320px !important;
+  }
+  .price-banner {
+    padding: 22px 18px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  /* Footer */
+  .footer-container {
+    padding: 50px 18px 30px !important;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 36px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .nav-order-text-short {
+    display: none !important;
+  }
+}

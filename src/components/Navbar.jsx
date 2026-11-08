@@ -24,6 +24,7 @@ export default function Navbar({ onOpenOrderModal }) {
   return (
     <>
       <header
+        className="header-nav"
         style={{
           position: 'fixed',
           top: 0,
@@ -64,7 +65,7 @@ export default function Navbar({ onOpenOrderModal }) {
               src="/assets/chipinn-logo-transparent.png"
               alt="Chipinn"
               style={{
-                height: '32px',
+                height: '30px',
                 width: 'auto',
                 objectFit: 'contain',
                 display: 'block',
@@ -72,7 +73,7 @@ export default function Navbar({ onOpenOrderModal }) {
             />
           </div>
 
-          {/* Clean Dark Text Nav Links for White Navbar */}
+          {/* Desktop Nav Links */}
           <nav
             style={{
               display: 'none',
@@ -129,13 +130,13 @@ export default function Navbar({ onOpenOrderModal }) {
           </nav>
 
           {/* Right Action Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               onClick={onOpenOrderModal}
               style={{
                 backgroundColor: '#1b5aff',
                 color: '#ffffff',
-                padding: '9px 20px',
+                padding: '8px 16px',
                 borderRadius: '9999px',
                 fontWeight: 600,
                 fontSize: '13px',
@@ -155,11 +156,12 @@ export default function Navbar({ onOpenOrderModal }) {
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <span>Order Unity Meter</span>
+              <span className="nav-order-text-full">Order Unity Meter</span>
+              <span className="nav-order-text-short">Order</span>
               <span
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                  padding: '2px 8px',
+                  padding: '2px 7px',
                   borderRadius: '9999px',
                   fontSize: '11px',
                   fontWeight: 700,
@@ -193,16 +195,16 @@ export default function Navbar({ onOpenOrderModal }) {
         <div
           style={{
             position: 'fixed',
-            top: '60px',
+            top: '56px',
             left: 0,
             right: 0,
             backgroundColor: '#ffffff',
             borderBottom: '1px solid #e5e7eb',
-            padding: '24px 20px',
+            padding: '20px 18px',
             zIndex: 49,
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
+            gap: '14px',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
           }}
         >
@@ -254,7 +256,7 @@ export default function Navbar({ onOpenOrderModal }) {
               onOpenOrderModal();
             }}
             style={{
-              marginTop: '12px',
+              marginTop: '10px',
               backgroundColor: '#1b5aff',
               color: '#ffffff',
               padding: '12px',

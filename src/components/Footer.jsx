@@ -11,6 +11,7 @@ export default function Footer({ onOpenOrderModal }) {
 
   return (
     <footer
+      className="footer-container"
       style={{
         backgroundColor: '#ffffff',
         color: '#111827',
@@ -20,11 +21,12 @@ export default function Footer({ onOpenOrderModal }) {
     >
       <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
         <div
+          className="footer-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '48px',
-            marginBottom: '60px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '40px',
+            marginBottom: '50px',
           }}
         >
           {/* Column 1: Brand Logo Only & Mission */}
@@ -171,7 +173,7 @@ export default function Footer({ onOpenOrderModal }) {
         <div
           style={{
             borderTop: '1px solid #e5e7eb',
-            paddingTop: '28px',
+            paddingTop: '24px',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',

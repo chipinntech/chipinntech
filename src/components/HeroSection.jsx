@@ -40,6 +40,7 @@ export default function HeroSection({ onOpenOrderModal }) {
 
       {/* Content Container (Positioned Cleanly Without Obscuring the Earth) */}
       <div
+        className="hero-container"
         style={{
           maxWidth: '1400px',
           margin: '0 auto',
@@ -68,7 +69,7 @@ export default function HeroSection({ onOpenOrderModal }) {
           {/* Balanced, Sleek Headline */}
           <h1
             style={{
-              fontSize: 'clamp(32px, 4.4vw, 54px)',
+              fontSize: 'clamp(30px, 4.4vw, 54px)',
               fontWeight: 800,
               lineHeight: 1.08,
               letterSpacing: '-0.02em',
@@ -100,6 +101,7 @@ export default function HeroSection({ onOpenOrderModal }) {
 
           {/* Action Buttons */}
           <div
+            className="hero-buttons"
             style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -108,6 +110,7 @@ export default function HeroSection({ onOpenOrderModal }) {
             }}
           >
             <button
+              className="hero-btn"
               onClick={onOpenOrderModal}
               style={{
                 backgroundColor: '#ffffff',
@@ -138,6 +141,7 @@ export default function HeroSection({ onOpenOrderModal }) {
             </button>
 
             <button
+              className="hero-btn"
               onClick={() => scrollTo('masterplan')}
               style={{
                 backgroundColor: 'rgba(5, 7, 12, 0.65)',
