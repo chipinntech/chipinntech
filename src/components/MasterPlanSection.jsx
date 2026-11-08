@@ -1,7 +1,13 @@
-import React from 'react';
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowDown, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function MasterPlanSection({ onOpenOrderModal }) {
+  const [expandedStages, setExpandedStages] = useState({});
+
+  const toggleStage = (num) => {
+    setExpandedStages((prev) => ({ ...prev, [num]: !prev[num] }));
+  };
+
   const stages = [
     {
       num: '01',
@@ -10,6 +16,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
       headline: 'Fixing the household problem first to build trust and cash flow.',
       image: '/assets/unity-meter-widescreen.jpg',
       tagline: 'Self-Funded Foundation',
+      shortDesc: 'In Ghana, compound houses and shared apartments suffer constant billing fights. We replace three separate sub-meters with a single 3-in-1 Unity Meter for GH₵1,250.',
       desc: 'In Ghana, compound houses and shared apartments are ground zero for energy friction. Four to eight tenants sharing one meter leads to constant arguments, unfair estimates, and pushes the compound into punitive higher PURC tariff tiers. We replace three separate sub-meters (which cost GH₵6,000) with a single 3-in-1 Unity Meter for just GH₵1,250. Every tenant gets their own balance, independent relay, and MoMo top-up.',
       impact: 'Outcome: Instant customer savings of GH₵4,750, elimination of household disputes, and rapid installation of Chipinn hardware in thousands of homes across Ghana.',
       cta: 'Order Unity Meter (GH₵1,250)',
@@ -22,6 +29,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
       headline: 'Teaching homes where their electricity is actually disappearing.',
       image: '/assets/unity-hero.jpg',
       tagline: 'Household Efficiency',
+      shortDesc: 'Deploy intelligent clip-on monitors for ACs and fridges to alert users about phantom loads and faulty compressors, saving 20% to 30% on bills.',
       desc: 'Once Chipinn meters are on the walls, we deploy intelligent clip-on appliance monitors. Faulty refrigerator compressors, unserviced AC units, and phantom standby loads quietly drain 20% to 30% of prepayments. Our sensors detect appliance power signatures and alert users directly via WhatsApp or mobile app with actionable fixes.',
       impact: 'Outcome: 20% to 30% reduction in electricity spend per household without waiting for national tariff adjustments.',
       cta: null,
@@ -34,6 +42,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
       headline: 'Eliminating the 30%+ commercial grid loss that causes tariff hikes.',
       image: '/assets/gridguard-theft-monitoring.jpg',
       tagline: 'Hardware Theft Monitoring',
+      shortDesc: 'ECG loses over 30% of power to illegal bypasses and ghost meters. GridGuard equips distribution utilities to eliminate theft points in real-time.',
       desc: 'Why are national tariffs in Ghana so high? Because ECG loses over 30% of generated power to illegal line bypasses, ghost meters, and unpaid commercial theft. When the utility bleeds hundreds of millions of cedis, it hikes tariffs on honest citizens and sheds load (Dumsor). Equipped with our dedicated GridGuard theft monitoring system, distribution utilities locate and eliminate bypass points in real-time.',
       impact: 'Outcome: ECG returns to commercial profitability, eliminating the root cause of tariff hikes and rolling blackouts.',
       cta: null,
@@ -46,6 +55,7 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
       headline: 'Flooding the local grid with abundant, cheap solar power.',
       image: '/assets/solar-grid.jpg',
       tagline: 'Energy Abundance Endgame',
+      shortDesc: 'Deploy distributed rooftop solar and micro-storage across residential clusters to lock electricity prices permanently below GH₵1 per kWh.',
       desc: 'With thousands of homes already equipped with Chipinn metering and load controls, we roll out distributed rooftop solar and micro-storage across residential and commercial clusters. Instead of relying solely on expensive thermal plants and imported fuel, clean energy is captured from the African sun and distributed directly to neighbors.',
       impact: 'Outcome: Retail electricity drops permanently below GH₵1 per kWh, creating true energy abundance for Ghana and Africa.',
       cta: null,
@@ -110,212 +120,251 @@ export default function MasterPlanSection({ onOpenOrderModal }) {
 
         {/* Sequential Stages Walkthrough */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0px' }}>
-          {stages.map((stage, idx) => (
-            <div key={stage.num} style={{ position: 'relative' }}>
-              {/* Stage Card */}
-              <div
-                className="stage-card"
-                style={{
-                  backgroundColor: '#0b101b',
-                  border: '1px solid #1a2538',
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  alignItems: 'stretch',
-                }}
-              >
-                {/* Image Side */}
+          {stages.map((stage, idx) => {
+            const isExpanded = !!expandedStages[stage.num];
+
+            return (
+              <div key={stage.num} style={{ position: 'relative' }}>
+                {/* Stage Card */}
                 <div
-                  className="stage-image-box"
+                  className="stage-card"
                   style={{
-                    position: 'relative',
-                    minHeight: '340px',
-                    backgroundColor: '#070a12',
-                    order: idx % 2 === 1 ? 2 : 1,
+                    backgroundColor: '#0b101b',
+                    border: '1px solid #1a2538',
+                    borderRadius: '24px',
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    alignItems: 'stretch',
                   }}
                 >
-                  <img
-                    src={stage.image}
-                    alt={stage.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
+                  {/* Image Side */}
                   <div
+                    className="stage-image-box"
                     style={{
-                      position: 'absolute',
-                      top: '16px',
-                      left: '16px',
-                      backgroundColor: 'rgba(5, 7, 12, 0.75)',
-                      backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      padding: '5px 12px',
-                      borderRadius: '9999px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      color: '#38bdf8',
+                      position: 'relative',
+                      minHeight: '340px',
+                      backgroundColor: '#070a12',
+                      order: idx % 2 === 1 ? 2 : 1,
                     }}
                   >
-                    {stage.tagline}
-                  </div>
-                </div>
-
-                {/* Content Side */}
-                <div
-                  className="stage-content-box stage-content"
-                  style={{
-                    padding: '40px 36px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    order: idx % 2 === 1 ? 1 : 2,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: '#38bdf8',
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    {stage.phase}
+                    <img
+                      src={stage.image}
+                      alt={stage.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '16px',
+                        left: '16px',
+                        backgroundColor: 'rgba(5, 7, 12, 0.75)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        padding: '5px 12px',
+                        borderRadius: '9999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#38bdf8',
+                      }}
+                    >
+                      {stage.tagline}
+                    </div>
                   </div>
 
-                  <h3
-                    style={{
-                      fontSize: 'clamp(20px, 2.2vw, 28px)',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                      lineHeight: 1.25,
-                      marginBottom: '10px',
-                    }}
-                  >
-                    {stage.title}
-                  </h3>
-
+                  {/* Content Side */}
                   <div
+                    className="stage-content-box stage-content"
                     style={{
-                      fontSize: '14px',
-                      color: '#34d399',
-                      fontWeight: 500,
-                      marginBottom: '16px',
+                      padding: '40px 36px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      order: idx % 2 === 1 ? 1 : 2,
                     }}
                   >
-                    {stage.headline}
-                  </div>
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#38bdf8',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      {stage.phase}
+                    </div>
 
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: '#94a3b8',
-                      lineHeight: 1.6,
-                      marginBottom: '20px',
-                    }}
-                  >
-                    {stage.desc}
-                  </p>
+                    <h3
+                      style={{
+                        fontSize: 'clamp(20px, 2.2vw, 28px)',
+                        fontWeight: 700,
+                        color: '#ffffff',
+                        lineHeight: 1.25,
+                        marginBottom: '10px',
+                      }}
+                    >
+                      {stage.title}
+                    </h3>
 
-                  <div
-                    style={{
-                      backgroundColor: '#060911',
-                      border: '1px solid #162032',
-                      borderRadius: '12px',
-                      padding: '14px',
-                      fontSize: '13px',
-                      color: '#cbd5e1',
-                      lineHeight: 1.5,
-                      marginBottom: stage.cta ? '20px' : 0,
-                    }}
-                  >
-                    <strong style={{ color: '#ffffff' }}>Target Impact:</strong> {stage.impact}
-                  </div>
+                    <div
+                      style={{
+                        fontSize: '14px',
+                        color: '#34d399',
+                        fontWeight: 500,
+                        marginBottom: '16px',
+                      }}
+                    >
+                      {stage.headline}
+                    </div>
 
-                  {stage.cta && (
-                    <div>
-                      <button
-                        onClick={onOpenOrderModal}
+                    {/* Desktop Version: Full text always visible */}
+                    <div className="desktop-only">
+                      <p
                         style={{
-                          backgroundColor: '#1b5aff',
-                          color: '#ffffff',
-                          padding: '13px 24px',
-                          borderRadius: '8px',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 4px 20px rgba(27, 90, 255, 0.4)',
+                          fontSize: '14px',
+                          color: '#94a3b8',
+                          lineHeight: 1.6,
+                          marginBottom: '20px',
                         }}
                       >
-                        <span>{stage.cta}</span>
-                        <ArrowRight size={15} />
+                        {stage.desc}
+                      </p>
+                    </div>
+
+                    {/* Mobile Version: Optimized with Read More Toggle */}
+                    <div className="mobile-only" style={{ marginBottom: '18px' }}>
+                      <p
+                        style={{
+                          fontSize: '14px',
+                          color: '#94a3b8',
+                          lineHeight: 1.55,
+                          margin: 0,
+                        }}
+                      >
+                        {isExpanded ? stage.desc : stage.shortDesc}
+                      </p>
+                      <button
+                        className="read-more-btn"
+                        onClick={() => toggleStage(stage.num)}
+                        aria-expanded={isExpanded}
+                      >
+                        {isExpanded ? (
+                          <>
+                            <span>Show less</span>
+                            <ChevronUp size={14} />
+                          </>
+                        ) : (
+                          <>
+                            <span>Read more</span>
+                            <ChevronDown size={14} />
+                          </>
+                        )}
                       </button>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Connecting Downward Arrow Line */}
-              {stage.connectorText && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '30px 0',
-                    position: 'relative',
-                  }}
-                >
+                    {/* Impact Box */}
+                    <div
+                      style={{
+                        backgroundColor: '#060911',
+                        border: '1px solid #162032',
+                        borderRadius: '12px',
+                        padding: '14px',
+                        fontSize: '13px',
+                        color: '#cbd5e1',
+                        lineHeight: 1.5,
+                        marginBottom: stage.cta ? '20px' : 0,
+                      }}
+                    >
+                      <strong style={{ color: '#ffffff' }}>Target Impact:</strong> {stage.impact}
+                    </div>
+
+                    {stage.cta && (
+                      <div style={{ marginTop: '18px' }}>
+                        <button
+                          onClick={onOpenOrderModal}
+                          style={{
+                            backgroundColor: '#1b5aff',
+                            color: '#ffffff',
+                            padding: '13px 24px',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 20px rgba(27, 90, 255, 0.4)',
+                          }}
+                        >
+                          <span>{stage.cta}</span>
+                          <ArrowRight size={15} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Connecting Downward Arrow Line */}
+                {stage.connectorText && (
                   <div
                     style={{
-                      width: '2px',
-                      height: '24px',
-                      background: 'linear-gradient(to bottom, #1b5aff, #38bdf8)',
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: 'inline-flex',
+                      display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '8px',
-                      backgroundColor: '#0c121e',
-                      border: '1px solid #1e2c44',
-                      padding: '6px 16px',
-                      borderRadius: '9999px',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: '#38bdf8',
-                      margin: '8px 0',
-                      textAlign: 'center',
+                      justifyContent: 'center',
+                      padding: '30px 0',
+                      position: 'relative',
                     }}
                   >
-                    <span>{stage.connectorText}</span>
-                    <ArrowDown size={13} />
+                    <div
+                      style={{
+                        width: '2px',
+                        height: '24px',
+                        background: 'linear-gradient(to bottom, #1b5aff, #38bdf8)',
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        backgroundColor: '#0c121e',
+                        border: '1px solid #1e2c44',
+                        padding: '6px 16px',
+                        borderRadius: '9999px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: '#38bdf8',
+                        margin: '8px 0',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <span>{stage.connectorText}</span>
+                      <ArrowDown size={13} />
+                    </div>
+                    <div
+                      style={{
+                        width: '2px',
+                        height: '24px',
+                        background: 'linear-gradient(to bottom, #38bdf8, #1b5aff)',
+                      }}
+                    />
                   </div>
-                  <div
-                    style={{
-                      width: '2px',
-                      height: '24px',
-                      background: 'linear-gradient(to bottom, #38bdf8, #1b5aff)',
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
