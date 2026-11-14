@@ -45,7 +45,44 @@ def test_api_endpoints():
     res = client.post("/api/sts/redeem", json={"token": "12345"})
     assert res.status_code in [400, 422]
 
-    print("All API endpoints tested successfully!")
+    # Ops Login - invalid password
+    res = client.post("/api/ops/auth/login", json={"password": "wrong_password"})
+    assert res.status_code == 401
+
+    # Ops Login - valid default password
+    res = client.post("/api/ops/auth/login", json={"password": "chipinn2026"})
+    assert res.status_code == 200
+    token = res.json()["token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Ops Overview
+    res = client.get("/api/ops/overview", headers=headers)
+    assert res.status_code == 200
+    overview = res.json()
+    assert "income_total_ghc" in overview
+    assert "accounts_ghc" in overview
+
+    # Ops Finances
+    res = client.get("/api/ops/finances", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    # Ops Employees
+    res = client.get("/api/ops/employees", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    # Ops Inventory
+    res = client.get("/api/ops/inventory", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    # Ops Clients
+    res = client.get("/api/ops/clients", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    print("All API & Ops endpoints tested successfully!")
 
 
 if __name__ == "__main__":

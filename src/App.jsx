@@ -1,17 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import MasterPlanSection from './components/MasterPlanSection';
 import UnityMeterSection from './components/UnityMeterSection';
 import OrderModal from './components/OrderModal';
 import Footer from './components/Footer';
+import OpsDashboard from './components/OpsDashboard';
 
 export default function App() {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [isOpsRoute, setIsOpsRoute] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.pathname === '/ops' || window.location.hash === '#/ops';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsOpsRoute(window.location.pathname === '/ops' || window.location.hash === '#/ops');
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
+  const handleOpenOps = () => {
+    window.history.pushState({}, '', '/ops');
+    setIsOpsRoute(true);
+  };
+
+  const handleExitOps = () => {
+    window.history.pushState({}, '', '/');
+    setIsOpsRoute(false);
+  };
 
   const handleOpenOrderModal = () => {
     setOrderModalOpen(true);
   };
+
+  if (isOpsRoute) {
+    return <OpsDashboard onExit={handleExitOps} />;
+  }
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#04070d' }}>
@@ -31,7 +62,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <Footer onOpenOrderModal={handleOpenOrderModal} />
+      <Footer onOpenOrderModal={handleOpenOrderModal} onOpenOps={handleOpenOps} />
 
       {/* Direct Order / Reservation Modal */}
       <OrderModal

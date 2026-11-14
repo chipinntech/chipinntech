@@ -11,6 +11,7 @@ import time
 import os
 
 from .ml_engine import engine
+from .ops_router import router as ops_router
 
 app = FastAPI(
     title="Chipinn GridPulse™ AI Engine",
@@ -39,9 +40,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "Accept"],
 )
+
+app.include_router(ops_router)
 
 
 class TelemetryRequest(BaseModel):

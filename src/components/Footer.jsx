@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
 
-export default function Footer({ onOpenOrderModal }) {
+export default function Footer({ onOpenOrderModal, onOpenOps }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -183,8 +183,29 @@ export default function Footer({ onOpenOrderModal }) {
             color: '#6b7280',
           }}
         >
-          <div>
-            © {new Date().getFullYear()} Chipinn Technologies Ltd. Built for Ghana & Africa.
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <span>© {new Date().getFullYear()} Chipinn Technologies Ltd. Built for Ghana & Africa.</span>
+            {onOpenOps && (
+              <button
+                onClick={onOpenOps}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#9ca3af',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'color 0.2s',
+                  padding: 0
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1b5aff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
+              >
+                <span>Ops Portal</span>
+              </button>
+            )}
           </div>
 
           <button
