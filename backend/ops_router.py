@@ -1,6 +1,6 @@
 """
 Chipinn Technologies — Ops Center API Router
-Provides REST endpoints for internal operations: finances, team, inventory, and clients.
+Provides REST endpoints for internal operations: finances, employees, inventory, clients, docs, and milestones.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Header
@@ -26,8 +26,6 @@ def generate_session_token() -> str:
 def require_ops_auth(authorization: Optional[str] = Header(None)):
     """Verifies the bearer token for Ops API access."""
     if not authorization:
-        # In local development mode without token, allow seamless fallback or require token
-        # To maintain high security, check token:
         raise HTTPException(status_code=401, detail="Ops authentication token missing.")
     
     parts = authorization.split()
@@ -71,7 +69,7 @@ class EmployeeCreateRequest(BaseModel):
     momo_number: Optional[str] = ""
     ghana_card: Optional[str] = ""
     zone: Optional[str] = ""
-    employment_type: Optional[str] = "Contract / Commission"
+    employment_type: Optional[str] = "Full-time"
     base_salary_ghc: Optional[float] = 0.0
     commission_per_meter_ghc: Optional[float] = 120.0
     meters_installed_count: Optional[int] = 0
@@ -110,9 +108,50 @@ class ClientCreateRequest(BaseModel):
     notes: Optional[str] = ""
 
 
+class PublicOrderRequest(BaseModel):
+    fullName: str
+    phone: str
+    city: str = "Accra"
+    digitalAddress: Optional[str] = ""
+    propertyType: str = "Compound House (3 Tenants)"
+    quantity: int = 1
+    payment_method: str = "momo" # 'momo', 'deposit_momo', 'cod'
+    momo_network: Optional[str] = "MTN MoMo"
+    momo_number: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
 class ClientStatusUpdateRequest(BaseModel):
     status: str
     amount_paid_ghc: Optional[float] = None
+
+
+class DocCreateRequest(BaseModel):
+    id: Optional[int] = None
+    title: str
+    category: str
+    author: Optional[str] = "Engineering Team"
+    summary: Optional[str] = ""
+    content: Optional[str] = ""
+    tags: Optional[str] = ""
+
+
+class MilestoneCreateRequest(BaseModel):
+    id: Optional[int] = None
+    stage: str
+    title: str
+    description: Optional[str] = ""
+    progress_percent: Optional[int] = 0
+    target_date: Optional[str] = ""
+    status: Optional[str] = "In Progress"
+
+
+# --- Public Store Endpoints ---
+@router.post("/public/order")
+def submit_public_order(req: PublicOrderRequest):
+    """Public checkout endpoint that records orders directly into Ops and notifies admin."""
+    res = db.handle_public_order(req.model_dump())
+    return res
 
 
 # --- Authentication Endpoints ---
@@ -247,3 +286,50 @@ def delete_ops_client(client_id: int, token: str = Depends(require_ops_auth)):
         raise HTTPException(status_code=404, detail="Client not found.")
     return {"success": True, "deleted_id": client_id}
 
+
+# --- Docs Endpoints ---
+@router.get("/docs")
+def get_ops_docs(token: str = Depends(require_ops_auth)):
+    return db.list_docs()
+
+
+@router.post("/docs")
+def save_ops_doc(req: DocCreateRequest, token: str = Depends(require_ops_auth)):
+    return db.add_or_update_doc(req.model_dump())
+
+
+@router.delete("/docs/{doc_id}")
+def delete_ops_doc(doc_id: int, token: str = Depends(require_ops_auth)):
+    if not db.delete_doc(doc_id):
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return {"success": True, "deleted_id": doc_id}
+
+
+# --- Milestones Endpoints ---
+@router.get("/milestones")
+def get_ops_milestones(token: str = Depends(require_ops_auth)):
+    return db.list_milestones()
+
+
+@router.post("/milestones")
+def save_ops_milestone(req: MilestoneCreateRequest, token: str = Depends(require_ops_auth)):
+    return db.add_or_update_milestone(req.model_dump())
+
+
+@router.delete("/milestones/{m_id}")
+def delete_ops_milestone(m_id: int, token: str = Depends(require_ops_auth)):
+    if not db.delete_milestone(m_id):
+        raise HTTPException(status_code=404, detail="Milestone not found.")
+    return {"success": True, "deleted_id": m_id}
+
+
+# --- Notifications Endpoints ---
+@router.get("/notifications")
+def get_ops_notifications(token: str = Depends(require_ops_auth)):
+    return db.list_notifications()
+
+
+@router.post("/notifications/read")
+def read_ops_notifications(token: str = Depends(require_ops_auth)):
+    db.mark_notifications_read()
+    return {"success": True}

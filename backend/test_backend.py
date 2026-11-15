@@ -82,6 +82,37 @@ def test_api_endpoints():
     assert res.status_code == 200
     assert len(res.json()) >= 1
 
+    # Ops Docs
+    res = client.get("/api/ops/docs", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    # Ops Milestones
+    res = client.get("/api/ops/milestones", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
+    # Public Order Placement from Website
+    order_payload = {
+        "fullName": "Test Landlord Mensah",
+        "phone": "+233241112233",
+        "city": "East Legon",
+        "propertyType": "Compound House (3 Tenants)",
+        "quantity": 1,
+        "payment_method": "momo",
+        "momo_network": "MTN MoMo"
+    }
+    res = client.post("/api/ops/public/order", json=order_payload)
+    assert res.status_code == 200
+    order_data = res.json()
+    assert order_data["success"] is True
+    assert "reference_code" in order_data
+
+    # Notifications check
+    res = client.get("/api/ops/notifications", headers=headers)
+    assert res.status_code == 200
+    assert len(res.json()) >= 1
+
     print("All API & Ops endpoints tested successfully!")
 
 

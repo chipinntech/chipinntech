@@ -1,11 +1,12 @@
 """
 Chipinn Technologies — Ops Center Database Module
-Handles SQLite operations for internal finances, staff/electricians, inventory, and clients.
+Handles SQLite operations for internal finances, employees, inventory, clients, docs, and milestones.
 """
 
 import sqlite3
 import hashlib
 import os
+import random
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -63,7 +64,7 @@ def init_db():
             )
         """)
 
-        # 3. Employees & Field Electricians
+        # 3. Employees
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ops_employees (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,7 +74,7 @@ def init_db():
                 momo_number TEXT,
                 ghana_card TEXT,
                 zone TEXT,
-                employment_type TEXT DEFAULT 'Contract / Commission',
+                employment_type TEXT DEFAULT 'Full-time',
                 base_salary_ghc REAL DEFAULT 0,
                 commission_per_meter_ghc REAL DEFAULT 120,
                 meters_installed_count INTEGER DEFAULT 0,
@@ -119,6 +120,46 @@ def init_db():
             )
         """)
 
+        # 6. Product Documentation & Research Notes
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ops_docs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                author TEXT DEFAULT 'Engineering Team',
+                summary TEXT,
+                content TEXT,
+                tags TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 7. Milestones Tracker
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ops_milestones (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                stage TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                progress_percent INTEGER DEFAULT 0,
+                target_date TEXT,
+                status TEXT DEFAULT 'In Progress',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 8. Real-time Notifications
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ops_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT DEFAULT 'order',
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                is_read INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # Seed initial data if tables are empty
         cursor.execute("SELECT COUNT(*) as count FROM ops_finances")
         if cursor.fetchone()["count"] == 0:
@@ -128,7 +169,7 @@ def init_db():
             finances_seed = [
                 (today, 1250.0, "income", "meter_sale", "momo", "Full payment for Unity Meter #001 (East Legon)", "MTN-94810294", "Kwesi Mensah"),
                 (today, 625.0, "income", "deposit", "momo", "50% pre-order deposit for Spintex compound", "MTN-94811048", "Mrs. Akua Frimpong"),
-                (today, 120.0, "expense", "technician_payout", "momo", "Installation commission for Unit #001", "MTN-94813001", "Kofi Boateng (Installer)"),
+                (today, 120.0, "expense", "technician_payout", "momo", "Installation commission for Unit #001", "MTN-94813001", "Kofi Boateng (Tech)"),
                 (today, 1850.0, "expense", "cogs_parts", "bank", "Batch 1 Enclosure Casing & Relays", "STANBIC-TRX-441", "Precision Moldings Ghana"),
                 (today, 150.0, "expense", "delivery_fuel", "petty_cash", "Site inspection and delivery fuel", "CASH-PETTY-01", "Shell Spintex")
             ]
@@ -137,12 +178,12 @@ def init_db():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, finances_seed)
 
-            # Starter Team
+            # Starter Employees
             employees_seed = [
-                ("Kofi Boateng", "Lead Field Electrician", "+233 24 551 2341", "0245512341", "GHA-712894102-1", "Accra Central & Spintex", "Contract / Commission", 0.0, 120.0, 8, "Active"),
-                ("Emmanuel Osei", "Field Electrician", "+233 50 119 8472", "0501198472", "GHA-820194829-3", "Tema & Kpone", "Contract / Commission", 0.0, 120.0, 4, "Active"),
-                ("Derrick Addo", "Hardware Assembly Tech", "+233 27 492 0182", "0274920182", "GHA-910293810-4", "Lab Assembly", "Full-time", 2500.0, 20.0, 12, "Active"),
-                ("Sarah Lamptey", "Customer Operations & Sales", "+233 20 839 1049", "0208391049", "GHA-510294819-2", "Head Office / Remote", "Full-time", 2800.0, 50.0, 0, "Active")
+                ("Kofi Boateng", "Lead Electrical Engineer", "+233 24 551 2341", "0245512341", "GHA-712894102-1", "Accra Central & Spintex", "Full-time", 4500.0, 120.0, 8, "Active"),
+                ("Emmanuel Osei", "Field Operations Specialist", "+233 50 119 8472", "0501198472", "GHA-820194829-3", "Tema & Kpone", "Full-time", 3200.0, 120.0, 4, "Active"),
+                ("Derrick Addo", "Hardware Assembly & QA Tech", "+233 27 492 0182", "0274920182", "GHA-910293810-4", "Lab Assembly", "Full-time", 2500.0, 20.0, 12, "Active"),
+                ("Sarah Lamptey", "Customer Operations & Logistics", "+233 20 839 1049", "0208391049", "GHA-510294819-2", "Head Office / Remote", "Full-time", 2800.0, 50.0, 0, "Active")
             ]
             cursor.executemany("""
                 INSERT INTO ops_employees (name, role, phone, momo_number, ghana_card, zone, employment_type, base_salary_ghc, commission_per_meter_ghc, meters_installed_count, status)
@@ -173,6 +214,54 @@ def init_db():
                 INSERT INTO ops_clients (name, phone, alt_phone, location, ghana_post_gps, property_type, meters_ordered, meter_serials, total_amount_ghc, amount_paid_ghc, balance_due_ghc, status, assigned_installer_name, notes)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, clients_seed)
+
+        # Seed Milestones independently if empty
+        cursor.execute("SELECT COUNT(*) as count FROM ops_milestones")
+        if cursor.fetchone()["count"] == 0:
+            milestones_seed = [
+                ("Stage 01", "Deploy First 1,000 Unity Meters", "Expand across Greater Accra, Tema, and Kumasi to replace compound 3-meter clutter.", 25, "Q2 2027", "In Progress"),
+                ("Stage 02", "Prototype Chipinn Sense Appliance Monitor", "Non-intrusive high-frequency load disaggregation to eliminate phantom residential loads.", 15, "Q3 2027", "In Progress"),
+                ("Stage 03", "GridGuard Utility Anti-Theft Substation Pilot", "Hardware bypass detection system to return utility grid distribution to profitability.", 0, "Q1 2028", "Upcoming"),
+                ("Stage 04", "Distributed Clean Solar Generation", "Mass distributed solar microgrids dropping cost of electricity below GH₵1.00 / kWh.", 0, "Q4 2028", "Upcoming")
+            ]
+            cursor.executemany("""
+                INSERT INTO ops_milestones (stage, title, description, progress_percent, target_date, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, milestones_seed)
+
+        # Seed Documentation independently if empty
+        cursor.execute("SELECT COUNT(*) as count FROM ops_docs")
+        if cursor.fetchone()["count"] == 0:
+            docs_seed = [
+                (
+                    "Unity Meter 3-in-1 Hardware Architecture & STS Protocol",
+                    "hardware_spec",
+                    "Lead Hardware Architect",
+                    "Complete electrical specification of the 3-channel sub-metering chassis.",
+                    "### Architecture Overview\nThe Unity Meter integrates three galvanically isolated sub-metering channels into a single UV-stabilized, fire-retardant wall-mounted enclosure.\n\n- **Microcontroller**: Dual-core ESP32 with hardware cryptographic engine for 20-digit STS token verification.\n- **Current Sensing**: 3x 100A split-core current transformers (Class 0.5 accuracy).\n- **Switching**: 3x 100A bi-directional latching magnetic relays.\n- **Communications**: Dual-band GSM/GPRS + 2.4GHz WiFi telemetry fallback.",
+                    "STS, Hardware, Relays, ESP32, Ghana Standards"
+                ),
+                (
+                    "Energy Commission of Ghana & GSA Regulatory Compliance",
+                    "regulatory_compliance",
+                    "Legal & Compliance Lead",
+                    "Compliance roadmap for sub-metering deployment under PURC & Energy Commission rules.",
+                    "### Regulatory Framework\n- Conforms to **IEC 62053-21** (Electricity metering equipment for active energy classes 1 and 2).\n- Complies with **IEC 62055-41** (Standard Transfer Specification for prepayment systems).\n- Sub-metering complies with PURC tenant billing guidelines: tenants are billed strictly at approved utility tariffs with zero landlord markup.",
+                    "Regulatory, PURC, Energy Commission, IEC"
+                ),
+                (
+                    "Research: Non-Intrusive Load Monitoring (NILM) for Ghanaian Households",
+                    "research_whitepaper",
+                    "AI & GridPulse Research",
+                    "Algorithm research for disaggregating refrigeration, deep freezers, and air conditioners from single-point current telemetry.",
+                    "### Objective\nEliminate phantom load wastage in Ghanaian homes (estimated at 20% to 30% of average monthly electricity consumption) using high-frequency edge FFT analysis on current harmonics.",
+                    "NILM, Machine Learning, Phantom Load, Energy Efficiency"
+                )
+            ]
+            cursor.executemany("""
+                INSERT INTO ops_docs (title, category, author, summary, content, tags)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, docs_seed)
 
         conn.commit()
 
@@ -242,7 +331,7 @@ def get_overview_metrics() -> Dict[str, Any]:
         cursor.execute("SELECT COUNT(*) as low_stock FROM ops_inventory WHERE quantity <= min_threshold")
         low_stock_count = int(cursor.fetchone()["low_stock"] or 0)
 
-        # Team count
+        # Employees count
         cursor.execute("SELECT COUNT(*) as team_count FROM ops_employees WHERE status = 'Active'")
         team_count = int(cursor.fetchone()["team_count"] or 0)
 
@@ -252,6 +341,10 @@ def get_overview_metrics() -> Dict[str, Any]:
             FROM ops_finances ORDER BY id DESC LIMIT 5
         """)
         recent_finances = [dict(r) for r in cursor.fetchall()]
+
+        # Unread notifications
+        cursor.execute("SELECT COUNT(*) as count FROM ops_notifications WHERE is_read = 0")
+        unread_notifications = int(cursor.fetchone()["count"] or 0)
 
         return {
             "income_total_ghc": round(income_total, 2),
@@ -263,6 +356,7 @@ def get_overview_metrics() -> Dict[str, Any]:
             "total_meters_ordered": total_meters_sold,
             "low_stock_alerts": low_stock_count,
             "active_team_count": team_count,
+            "unread_notifications": unread_notifications,
             "recent_activity": recent_finances
         }
 
@@ -335,7 +429,7 @@ def add_or_update_employee(data: Dict[str, Any]) -> Dict[str, Any]:
                 WHERE id = ?
             """, (
                 data["name"], data["role"], data["phone"], data.get("momo_number", ""),
-                data.get("ghana_card", ""), data.get("zone", ""), data.get("employment_type", "Contract / Commission"),
+                data.get("ghana_card", ""), data.get("zone", ""), data.get("employment_type", "Full-time"),
                 float(data.get("base_salary_ghc", 0)), float(data.get("commission_per_meter_ghc", 120)),
                 int(data.get("meters_installed_count", 0)), data.get("status", "Active"), emp_id
             ))
@@ -348,7 +442,7 @@ def add_or_update_employee(data: Dict[str, Any]) -> Dict[str, Any]:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 data["name"], data["role"], data["phone"], data.get("momo_number", ""),
-                data.get("ghana_card", ""), data.get("zone", ""), data.get("employment_type", "Contract / Commission"),
+                data.get("ghana_card", ""), data.get("zone", ""), data.get("employment_type", "Full-time"),
                 float(data.get("base_salary_ghc", 0)), float(data.get("commission_per_meter_ghc", 120)),
                 int(data.get("meters_installed_count", 0)), data.get("status", "Active")
             ))
@@ -432,7 +526,7 @@ def delete_inventory(item_id: int) -> bool:
         return cursor.rowcount > 0
 
 
-# --- Clients Services ---
+# --- Clients & Public Order Services ---
 def list_clients() -> List[Dict[str, Any]]:
     with get_db() as conn:
         cursor = conn.cursor()
@@ -483,6 +577,93 @@ def add_or_update_client(data: Dict[str, Any]) -> Dict[str, Any]:
         return dict(cursor.fetchone())
 
 
+def handle_public_order(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Processes customer orders placed from the website modal."""
+    qty = int(data.get("quantity", 1))
+    unit_price = 1250.0
+    total_amount = qty * unit_price
+    payment_method = data.get("payment_method", "momo") # 'momo', 'deposit_momo', 'cod'
+    momo_network = data.get("momo_network", "MTN MoMo")
+    momo_number = data.get("momo_number", data.get("phone", ""))
+    
+    if payment_method == "momo":
+        amount_paid = total_amount
+        status = "Paid via MoMo"
+    elif payment_method == "deposit_momo":
+        amount_paid = 625.0 * qty
+        status = "Deposit Paid"
+    else:
+        amount_paid = 0.0
+        status = "Cash on Delivery"
+
+    balance_due = max(0.0, total_amount - amount_paid)
+    ref_code = f"CP-ORD-{random.randint(10000, 99999)}"
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # 1. Insert Client Record
+        cursor.execute("""
+            INSERT INTO ops_clients (
+                name, phone, alt_phone, location, ghana_post_gps, property_type,
+                meters_ordered, meter_serials, total_amount_ghc, amount_paid_ghc,
+                balance_due_ghc, status, assigned_installer_name, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            data["fullName"],
+            data["phone"],
+            momo_number if momo_number != data["phone"] else "",
+            data.get("city", "Accra"),
+            data.get("digitalAddress", ""),
+            data.get("propertyType", "Compound House (3 Tenants)"),
+            qty,
+            f"Allocating Batch {random.randint(10, 99)}",
+            total_amount,
+            amount_paid,
+            balance_due,
+            status,
+            "Pending Dispatch",
+            f"Website order #{ref_code}. Payment: {payment_method} ({momo_network})."
+        ))
+        client_id = cursor.lastrowid
+
+        # 2. If MoMo paid, record in Financial Ledger
+        if amount_paid > 0:
+            today = datetime.now().strftime("%Y-%m-%d")
+            cursor.execute("""
+                INSERT INTO ops_finances (date, amount_ghc, type, category, account, description, reference, party)
+                VALUES (?, ?, 'income', 'meter_sale', 'momo', ?, ?, ?)
+            """, (
+                today,
+                amount_paid,
+                f"Web Order #{ref_code} ({qty}x Unity Meter via {momo_network})",
+                f"MOMO-{ref_code}",
+                data["fullName"]
+            ))
+
+        # 3. Create Real-Time Notification
+        cursor.execute("""
+            INSERT INTO ops_notifications (type, title, message)
+            VALUES (?, ?, ?)
+        """, (
+            "new_order",
+            f"New Web Order: {data['fullName']} ({qty}x Unity Meter)",
+            f"{qty}x Unity Meter ordered in {data.get('city', 'Accra')}. Paid: GH₵{amount_paid:,.0f} via {momo_network}."
+        ))
+
+        conn.commit()
+
+        return {
+            "success": True,
+            "order_id": client_id,
+            "reference_code": ref_code,
+            "total_amount_ghc": total_amount,
+            "amount_paid_ghc": amount_paid,
+            "balance_due_ghc": balance_due,
+            "status": status
+        }
+
+
 def update_client_status(client_id: int, status: str, amount_paid: Optional[float] = None) -> Optional[Dict[str, Any]]:
     with get_db() as conn:
         cursor = conn.cursor()
@@ -510,3 +691,112 @@ def delete_client(client_id: int) -> bool:
         conn.commit()
         return cursor.rowcount > 0
 
+
+# --- Documentation & Research Services ---
+def list_docs() -> List[Dict[str, Any]]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM ops_docs ORDER BY id DESC")
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def add_or_update_doc(data: Dict[str, Any]) -> Dict[str, Any]:
+    doc_id = data.get("id")
+    with get_db() as conn:
+        cursor = conn.cursor()
+        if doc_id:
+            cursor.execute("""
+                UPDATE ops_docs SET
+                    title = ?, category = ?, author = ?, summary = ?,
+                    content = ?, tags = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (
+                data["title"], data["category"], data.get("author", "Engineering Team"),
+                data.get("summary", ""), data.get("content", ""), data.get("tags", ""), doc_id
+            ))
+        else:
+            cursor.execute("""
+                INSERT INTO ops_docs (title, category, author, summary, content, tags)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                data["title"], data["category"], data.get("author", "Engineering Team"),
+                data.get("summary", ""), data.get("content", ""), data.get("tags", "")
+            ))
+            doc_id = cursor.lastrowid
+        conn.commit()
+        cursor.execute("SELECT * FROM ops_docs WHERE id = ?", (doc_id,))
+        return dict(cursor.fetchone())
+
+
+def delete_doc(doc_id: int) -> bool:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM ops_docs WHERE id = ?", (doc_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+# --- Milestones Services ---
+def list_milestones() -> List[Dict[str, Any]]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM ops_milestones ORDER BY id ASC")
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def add_or_update_milestone(data: Dict[str, Any]) -> Dict[str, Any]:
+    m_id = data.get("id")
+    with get_db() as conn:
+        cursor = conn.cursor()
+        if m_id:
+            cursor.execute("""
+                UPDATE ops_milestones SET
+                    stage = ?, title = ?, description = ?, progress_percent = ?,
+                    target_date = ?, status = ?
+                WHERE id = ?
+            """, (
+                data["stage"], data["title"], data.get("description", ""),
+                int(data.get("progress_percent", 0)), data.get("target_date", ""),
+                data.get("status", "In Progress"), m_id
+            ))
+        else:
+            cursor.execute("""
+                INSERT INTO ops_milestones (stage, title, description, progress_percent, target_date, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                data["stage"], data["title"], data.get("description", ""),
+                int(data.get("progress_percent", 0)), data.get("target_date", ""),
+                data.get("status", "In Progress")
+            ))
+            m_id = cursor.lastrowid
+        conn.commit()
+        cursor.execute("SELECT * FROM ops_milestones WHERE id = ?", (m_id,))
+        return dict(cursor.fetchone())
+
+
+def delete_milestone(m_id: int) -> bool:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM ops_milestones WHERE id = ?", (m_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+# --- Notifications Services ---
+def list_notifications(unread_only: bool = False) -> List[Dict[str, Any]]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        query = "SELECT * FROM ops_notifications"
+        if unread_only:
+            query += " WHERE is_read = 0"
+        query += " ORDER BY id DESC LIMIT 20"
+        cursor.execute(query)
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def mark_notifications_read() -> bool:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE ops_notifications SET is_read = 1 WHERE is_read = 0")
+        conn.commit()
+        return True

@@ -32,7 +32,12 @@ import {
   Send,
   Sparkles,
   Check,
-  Smartphone
+  Smartphone,
+  BookOpen,
+  FileText,
+  Target,
+  Bell,
+  Eye
 } from 'lucide-react';
 
 const API_BASE = 'http://127.0.0.1:8000';
@@ -51,7 +56,7 @@ const INITIAL_OVERVIEW = {
   recent_activity: [
     { id: 5, date: '2026-11-14', amount_ghc: 150.0, type: 'expense', category: 'delivery_fuel', account: 'petty_cash', description: 'Site inspection and delivery fuel', party: 'Shell Spintex' },
     { id: 4, date: '2026-11-14', amount_ghc: 1850.0, type: 'expense', category: 'cogs_parts', account: 'bank', description: 'Batch 1 Enclosure Casing & Relays', party: 'Precision Moldings Ghana' },
-    { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', party: 'Kofi Boateng (Installer)' },
+    { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', party: 'Kofi Boateng (Tech)' },
     { id: 2, date: '2026-11-14', amount_ghc: 625.0, type: 'income', category: 'deposit', account: 'momo', description: '50% pre-order deposit for Spintex compound', party: 'Mrs. Akua Frimpong' },
     { id: 1, date: '2026-11-14', amount_ghc: 1250.0, type: 'income', category: 'meter_sale', account: 'momo', description: 'Full payment for Unity Meter #001 (East Legon)', party: 'Kwesi Mensah' }
   ]
@@ -60,16 +65,16 @@ const INITIAL_OVERVIEW = {
 const INITIAL_FINANCES = [
   { id: 5, date: '2026-11-14', amount_ghc: 150.0, type: 'expense', category: 'delivery_fuel', account: 'petty_cash', description: 'Site inspection and delivery fuel', reference: 'CASH-PETTY-01', party: 'Shell Spintex' },
   { id: 4, date: '2026-11-14', amount_ghc: 1850.0, type: 'expense', category: 'cogs_parts', account: 'bank', description: 'Batch 1 Enclosure Casing & Relays', reference: 'STANBIC-TRX-441', party: 'Precision Moldings Ghana' },
-  { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', reference: 'MTN-94813001', party: 'Kofi Boateng (Installer)' },
+  { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', reference: 'MTN-94813001', party: 'Kofi Boateng (Tech)' },
   { id: 2, date: '2026-11-14', amount_ghc: 625.0, type: 'income', category: 'deposit', account: 'momo', description: '50% pre-order deposit for Spintex compound', reference: 'MTN-94811048', party: 'Mrs. Akua Frimpong' },
   { id: 1, date: '2026-11-14', amount_ghc: 1250.0, type: 'income', category: 'meter_sale', account: 'momo', description: 'Full payment for Unity Meter #001 (East Legon)', reference: 'MTN-94810294', party: 'Kwesi Mensah' }
 ];
 
 const INITIAL_EMPLOYEES = [
-  { id: 1, name: 'Kofi Boateng', role: 'Lead Field Electrician', phone: '+233 24 551 2341', momo_number: '0245512341', ghana_card: 'GHA-712894102-1', zone: 'Accra Central & Spintex', employment_type: 'Contract / Commission', base_salary_ghc: 0, commission_per_meter_ghc: 120, meters_installed_count: 8, status: 'Active' },
-  { id: 2, name: 'Emmanuel Osei', role: 'Field Electrician', phone: '+233 50 119 8472', momo_number: '0501198472', ghana_card: 'GHA-820194829-3', zone: 'Tema & Kpone', employment_type: 'Contract / Commission', base_salary_ghc: 0, commission_per_meter_ghc: 120, meters_installed_count: 4, status: 'Active' },
-  { id: 3, name: 'Derrick Addo', role: 'Hardware Assembly Tech', phone: '+233 27 492 0182', momo_number: '0274920182', ghana_card: 'GHA-910293810-4', zone: 'Lab Assembly', employment_type: 'Full-time', base_salary_ghc: 2500, commission_per_meter_ghc: 20, meters_installed_count: 12, status: 'Active' },
-  { id: 4, name: 'Sarah Lamptey', role: 'Customer Operations & Sales', phone: '+233 20 839 1049', momo_number: '0208391049', ghana_card: 'GHA-510294819-2', zone: 'Head Office / Remote', employment_type: 'Full-time', base_salary_ghc: 2800, commission_per_meter_ghc: 50, meters_installed_count: 0, status: 'Active' }
+  { id: 1, name: 'Kofi Boateng', role: 'Lead Electrical Engineer', department: 'Engineering & Hardware', phone: '+233 24 551 2341', momo_number: '0245512341', ghana_card: 'GHA-712894102-1', zone: 'Accra Central & Spintex', employment_type: 'Full-time', base_salary_ghc: 4500, commission_per_meter_ghc: 120, meters_installed_count: 8, status: 'Active' },
+  { id: 2, name: 'Emmanuel Osei', role: 'Field Operations Specialist', department: 'Field Operations', phone: '+233 50 119 8472', momo_number: '0501198472', ghana_card: 'GHA-820194829-3', zone: 'Tema & Kpone', employment_type: 'Full-time', base_salary_ghc: 3200, commission_per_meter_ghc: 120, meters_installed_count: 4, status: 'Active' },
+  { id: 3, name: 'Derrick Addo', role: 'Hardware Assembly & QA Tech', department: 'Assembly & QA', phone: '+233 27 492 0182', momo_number: '0274920182', ghana_card: 'GHA-910293810-4', zone: 'Lab Assembly', employment_type: 'Full-time', base_salary_ghc: 2500, commission_per_meter_ghc: 20, meters_installed_count: 12, status: 'Active' },
+  { id: 4, name: 'Sarah Lamptey', role: 'Customer Operations & Logistics', department: 'Customer Sales & Ops', phone: '+233 20 839 1049', momo_number: '0208391049', ghana_card: 'GHA-510294819-2', zone: 'Head Office / Remote', employment_type: 'Full-time', base_salary_ghc: 2800, commission_per_meter_ghc: 50, meters_installed_count: 0, status: 'Active' }
 ];
 
 const INITIAL_INVENTORY = [
@@ -87,6 +92,53 @@ const INITIAL_CLIENTS = [
   { id: 3, name: 'Dr. Nii Armah Tagoe', phone: '+233 24 382 9102', alt_phone: '', location: 'Dansoman (Keep Fit Club)', ghana_post_gps: 'GA-582-1948', property_type: 'Storefront & Residential', meters_ordered: 1, meter_serials: 'Pending Allocation', total_amount_ghc: 1250.0, amount_paid_ghc: 0.0, balance_due_ghc: 1250.0, status: 'New Inquiry', assigned_installer_name: '', notes: 'Requested site inspection before committing.' }
 ];
 
+const INITIAL_MILESTONES = [
+  { id: 1, stage: 'Stage 01', title: 'Deploy First 1,000 Unity Meters', description: 'Expand across Greater Accra, Tema, and Kumasi to replace compound 3-meter clutter.', progress_percent: 25, target_date: 'Q2 2027', status: 'In Progress' },
+  { id: 2, stage: 'Stage 02', title: 'Prototype Chipinn Sense Appliance Monitor', description: 'Non-intrusive high-frequency load disaggregation to eliminate phantom residential loads.', progress_percent: 15, target_date: 'Q3 2027', status: 'In Progress' },
+  { id: 3, stage: 'Stage 03', title: 'GridGuard Utility Anti-Theft Substation Pilot', description: 'Hardware bypass detection system to return utility grid distribution to profitability.', progress_percent: 0, target_date: 'Q1 2028', status: 'Upcoming' },
+  { id: 4, stage: 'Stage 04', title: 'Distributed Clean Solar Generation', description: 'Mass distributed solar microgrids dropping cost of electricity below GH₵1.00 / kWh.', progress_percent: 0, target_date: 'Q4 2028', status: 'Upcoming' }
+];
+
+const INITIAL_DOCS = [
+  {
+    id: 1,
+    title: 'Unity Meter 3-in-1 Hardware Architecture & STS Protocol',
+    category: 'hardware_spec',
+    author: 'Lead Hardware Architect',
+    summary: 'Complete electrical specification of the 3-channel sub-metering chassis.',
+    content: `### Architecture Overview
+The Unity Meter integrates three galvanically isolated sub-metering channels into a single UV-stabilized, fire-retardant wall-mounted enclosure.
+
+- **Microcontroller**: Dual-core ESP32 with hardware cryptographic engine for 20-digit STS token verification.
+- **Current Sensing**: 3x 100A split-core current transformers (Class 0.5 accuracy).
+- **Switching**: 3x 100A bi-directional latching magnetic relays.
+- **Communications**: Dual-band GSM/GPRS + 2.4GHz WiFi telemetry fallback.`,
+    tags: 'STS, Hardware, Relays, ESP32, Ghana Standards'
+  },
+  {
+    id: 2,
+    title: 'Energy Commission of Ghana & GSA Regulatory Compliance',
+    category: 'regulatory_compliance',
+    author: 'Legal & Compliance Lead',
+    summary: 'Compliance roadmap for sub-metering deployment under PURC & Energy Commission rules.',
+    content: `### Regulatory Framework
+- Conforms to **IEC 62053-21** (Electricity metering equipment for active energy classes 1 and 2).
+- Complies with **IEC 62055-41** (Standard Transfer Specification for prepayment systems).
+- Sub-metering complies with PURC tenant billing guidelines: tenants are billed strictly at approved utility tariffs with zero landlord markup.`,
+    tags: 'Regulatory, PURC, Energy Commission, IEC'
+  },
+  {
+    id: 3,
+    title: 'Research: Non-Intrusive Load Monitoring (NILM) for Ghanaian Households',
+    category: 'research_whitepaper',
+    author: 'AI & GridPulse Research',
+    summary: 'Algorithm research for disaggregating refrigeration, deep freezers, and air conditioners from single-point current telemetry.',
+    content: `### Objective
+Eliminate phantom load wastage in Ghanaian homes (estimated at 20% to 30% of average monthly electricity consumption) using high-frequency edge FFT analysis on current harmonics.`,
+    tags: 'NILM, Machine Learning, Phantom Load, Energy Efficiency'
+  }
+];
+
 export default function OpsDashboard({ onExit }) {
   // Authentication State
   const [token, setToken] = useState(() => localStorage.getItem('chipinn_ops_token') || '');
@@ -94,17 +146,31 @@ export default function OpsDashboard({ onExit }) {
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // Active Tab: 'overview' | 'finances' | 'employees' | 'inventory' | 'clients' (Sidebar ONLY)
+  // Active Tab: 'overview' | 'finances' | 'employees' | 'inventory' | 'clients' | 'docs'
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState('');
+
+  // Unread Web Order Banner State
+  const [newOrderAlert, setNewOrderAlert] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_new_order_alert');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Docs Tab Sub-toggle: 'milestones' | 'docs'
+  const [docsSubTab, setDocsSubTab] = useState('milestones');
+  const [viewingDoc, setViewingDoc] = useState(null);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [financeAccountFilter, setFinanceAccountFilter] = useState('all');
   const [financeTypeFilter, setFinanceTypeFilter] = useState('all');
 
-  // Persistent / Initial Data States (Guaranteed never to be 0 or empty)
+  // Persistent Data States
   const [overview, setOverview] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_overview');
@@ -150,12 +216,35 @@ export default function OpsDashboard({ onExit }) {
     }
   });
 
-  // Modal Type
-  const [modalType, setModalType] = useState(null); // 'finance' | 'employee' | 'inventory' | 'client'
+  const [milestones, setMilestones] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_ops_milestones');
+      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_MILESTONES;
+    } catch {
+      return INITIAL_MILESTONES;
+    }
+  });
+
+  const [docs, setDocs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_ops_docs');
+      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_DOCS;
+    } catch {
+      return INITIAL_DOCS;
+    }
+  });
+
+  // Modal Type: 'finance' | 'employee' | 'inventory' | 'client' | 'milestone' | 'doc'
+  const [modalType, setModalType] = useState(null);
 
   const notify = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(''), 4000);
+  };
+
+  const dismissOrderAlert = () => {
+    setNewOrderAlert(null);
+    localStorage.removeItem('chipinn_new_order_alert');
   };
 
   // Authenticate
@@ -199,7 +288,7 @@ export default function OpsDashboard({ onExit }) {
     notify('Console session closed');
   };
 
-  // Fetch live data from FastAPI (with graceful local fallback)
+  // Fetch live data from FastAPI
   const fetchAllData = async () => {
     if (!token) return;
     setIsLoading(true);
@@ -210,12 +299,15 @@ export default function OpsDashboard({ onExit }) {
     };
 
     try {
-      const [resOverview, resFin, resEmp, resInv, resCli] = await Promise.all([
+      const [resOverview, resFin, resEmp, resInv, resCli, resMil, resDoc, resNotif] = await Promise.all([
         fetch(`${API_BASE}/api/ops/overview`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch(`${API_BASE}/api/ops/finances`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch(`${API_BASE}/api/ops/employees`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch(`${API_BASE}/api/ops/inventory`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/clients`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null)
+        fetch(`${API_BASE}/api/ops/clients`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/ops/milestones`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/ops/docs`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/ops/notifications`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null)
       ]);
 
       if (resOverview) {
@@ -237,6 +329,20 @@ export default function OpsDashboard({ onExit }) {
       if (resCli && resCli.length > 0) {
         setClients(resCli);
         localStorage.setItem('chipinn_ops_clients', JSON.stringify(resCli));
+      }
+      if (resMil && resMil.length > 0) {
+        setMilestones(resMil);
+        localStorage.setItem('chipinn_ops_milestones', JSON.stringify(resMil));
+      }
+      if (resDoc && resDoc.length > 0) {
+        setDocs(resDoc);
+        localStorage.setItem('chipinn_ops_docs', JSON.stringify(resDoc));
+      }
+      if (resNotif && resNotif.length > 0) {
+        const unread = resNotif.find(n => n.is_read === 0);
+        if (unread) {
+          setNewOrderAlert({ title: unread.title, message: unread.message, timestamp: Date.now() });
+        }
       }
       notify('Live data synchronized');
     } catch {
@@ -508,7 +614,7 @@ export default function OpsDashboard({ onExit }) {
         height: '100vh',
         zIndex: 40
       }}>
-        {/* Brand Header — Fixed Duplicate Brand Text */}
+        {/* Brand Header */}
         <div style={{
           height: '68px',
           padding: '0 20px',
@@ -539,7 +645,7 @@ export default function OpsDashboard({ onExit }) {
           </div>
         </div>
 
-        {/* Navigation Menu — The Sole Navigation Authority */}
+        {/* Navigation Menu — Strictly in Sidebar */}
         <nav style={{ padding: '20px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <SidebarPill
             active={activeTab === 'overview'}
@@ -558,7 +664,7 @@ export default function OpsDashboard({ onExit }) {
           <SidebarPill
             active={activeTab === 'employees'}
             icon={<Users size={18} />}
-            label="Electricians & Team"
+            label="Employees"
             count={employees.length}
             onClick={() => setActiveTab('employees')}
           />
@@ -575,7 +681,15 @@ export default function OpsDashboard({ onExit }) {
             icon={<Building2 size={18} />}
             label="Clients & Orders"
             count={clients.length}
+            alert={!!newOrderAlert}
             onClick={() => setActiveTab('clients')}
+          />
+          <SidebarPill
+            active={activeTab === 'docs'}
+            icon={<BookOpen size={18} />}
+            label="Docs & Milestones"
+            count={docs.length + milestones.length}
+            onClick={() => setActiveTab('docs')}
           />
         </nav>
 
@@ -663,7 +777,7 @@ export default function OpsDashboard({ onExit }) {
 
       {/* --- MAIN CONTENT CANVAS --- */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-        {/* CLEAN TOP HEADER BAR (TABS REMOVED, SIDEBAR IS THE ONLY NAVIGATION) */}
+        {/* CLEAN TOP HEADER BAR */}
         <header style={{
           height: '68px',
           backgroundColor: '#ffffff',
@@ -684,9 +798,10 @@ export default function OpsDashboard({ onExit }) {
               <span style={{ color: '#0f172a', fontWeight: 800 }}>
                 {activeTab === 'overview' && 'Executive Overview'}
                 {activeTab === 'finances' && 'Financial Ledger & Cash Flow'}
-                {activeTab === 'employees' && 'Field Electricians & Team'}
+                {activeTab === 'employees' && 'Company Employees'}
                 {activeTab === 'inventory' && 'Hardware Stock & Parts'}
                 {activeTab === 'clients' && 'Landlord Orders & Installations'}
+                {activeTab === 'docs' && 'Documentation & Milestones'}
               </span>
             </div>
 
@@ -706,7 +821,7 @@ export default function OpsDashboard({ onExit }) {
             </span>
           </div>
 
-          {/* Right Header Buttons: Sync & Primary Action Pill */}
+          {/* Right Header Buttons: Sync & Action */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               onClick={fetchAllData}
@@ -732,50 +847,49 @@ export default function OpsDashboard({ onExit }) {
 
             {/* Context-Aware Action Pill Button */}
             {activeTab === 'finances' && (
-              <button
-                onClick={() => setModalType('finance')}
-                style={primaryPillBtnStyle}
-              >
+              <button onClick={() => setModalType('finance')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
                 <span>Record Entry</span>
               </button>
             )}
 
             {activeTab === 'employees' && (
-              <button
-                onClick={() => setModalType('employee')}
-                style={primaryPillBtnStyle}
-              >
+              <button onClick={() => setModalType('employee')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
-                <span>Add Electrician</span>
+                <span>Add Employee</span>
               </button>
             )}
 
             {activeTab === 'inventory' && (
-              <button
-                onClick={() => setModalType('inventory')}
-                style={primaryPillBtnStyle}
-              >
+              <button onClick={() => setModalType('inventory')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
                 <span>Add Part / Stock</span>
               </button>
             )}
 
             {activeTab === 'clients' && (
-              <button
-                onClick={() => setModalType('client')}
-                style={primaryPillBtnStyle}
-              >
+              <button onClick={() => setModalType('client')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
                 <span>New Landlord Order</span>
               </button>
             )}
 
+            {activeTab === 'docs' && docsSubTab === 'milestones' && (
+              <button onClick={() => setModalType('milestone')} style={primaryPillBtnStyle}>
+                <Plus size={15} />
+                <span>Add Milestone</span>
+              </button>
+            )}
+
+            {activeTab === 'docs' && docsSubTab === 'docs' && (
+              <button onClick={() => setModalType('doc')} style={primaryPillBtnStyle}>
+                <Plus size={15} />
+                <span>Add Document</span>
+              </button>
+            )}
+
             {activeTab === 'overview' && (
-              <button
-                onClick={() => setModalType('finance')}
-                style={primaryPillBtnStyle}
-              >
+              <button onClick={() => setModalType('finance')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
                 <span>Record Cash Entry</span>
               </button>
@@ -785,6 +899,64 @@ export default function OpsDashboard({ onExit }) {
 
         {/* CONTENT VIEWPORT */}
         <main style={{ padding: '36px 40px', maxWidth: '1440px', width: '100%', boxSizing: 'border-box' }}>
+          {/* Real-time Web Order Alert Banner */}
+          {newOrderAlert && (
+            <div style={{
+              backgroundColor: '#eff6ff',
+              border: '1.5px solid #bfdbfe',
+              borderRadius: '16px',
+              padding: '16px 20px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(37, 99, 235, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Bell size={18} />
+                </div>
+                <div>
+                  <strong style={{ fontSize: '14px', color: '#1e3a8a' }}>{newOrderAlert.title}</strong>
+                  <div style={{ fontSize: '13px', color: '#1d4ed8', marginTop: '2px' }}>{newOrderAlert.message}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={() => { setActiveTab('clients'); dismissOrderAlert(); }}
+                  style={{
+                    padding: '8px 18px',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  View in Orders →
+                </button>
+                <button
+                  onClick={dismissOrderAlert}
+                  style={{ padding: '6px', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* =================================================================== */}
           {/* TAB 1: EXECUTIVE OVERVIEW */}
           {/* =================================================================== */}
@@ -811,15 +983,12 @@ export default function OpsDashboard({ onExit }) {
                     Executive Operations Overview
                   </h1>
                   <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '640px', lineHeight: 1.5 }}>
-                    Real-time operational command center for Unity Meter deployments (GH₵1,250), MoMo transaction settlements, electrician commissions, and inventory tracking.
+                    Real-time operational command center for Unity Meter deployments (GH₵1,250), MoMo transaction settlements, employee commissions, and inventory tracking.
                   </p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button
-                    onClick={() => setActiveTab('finances')}
-                    style={primaryPillBtnStyle}
-                  >
+                  <button onClick={() => setActiveTab('finances')} style={primaryPillBtnStyle}>
                     View Financial Log →
                   </button>
                   <button
@@ -835,7 +1004,7 @@ export default function OpsDashboard({ onExit }) {
                       cursor: 'pointer'
                     }}
                   >
-                    View Electricians ({employees.length})
+                    View Employees ({employees.length})
                   </button>
                 </div>
               </div>
@@ -992,7 +1161,7 @@ export default function OpsDashboard({ onExit }) {
                     Financial Ledger & Transaction Log
                   </h2>
                   <p style={{ fontSize: '13px', color: '#64748b' }}>
-                    Track all inbound customer MoMo payments, component purchases, and field electrician payouts.
+                    Track all inbound customer MoMo payments, component purchases, and employee payouts.
                   </p>
                 </div>
 
@@ -1017,10 +1186,7 @@ export default function OpsDashboard({ onExit }) {
                     <span>Export CSV</span>
                   </button>
 
-                  <button
-                    onClick={() => setModalType('finance')}
-                    style={primaryPillBtnStyle}
-                  >
+                  <button onClick={() => setModalType('finance')} style={primaryPillBtnStyle}>
                     <Plus size={15} />
                     <span>Record Entry</span>
                   </button>
@@ -1224,7 +1390,7 @@ export default function OpsDashboard({ onExit }) {
           )}
 
           {/* =================================================================== */}
-          {/* TAB 3: TEAM & ELECTRICIANS (RESOLVED EMPTY STATE) */}
+          {/* TAB 3: EMPLOYEES */}
           {/* =================================================================== */}
           {activeTab === 'employees' && (
             <div>
@@ -1244,10 +1410,10 @@ export default function OpsDashboard({ onExit }) {
               }}>
                 <div>
                   <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#0f172a', marginBottom: '4px' }}>
-                    Certified Electricians & Field Team
+                    Company Employees & Team
                   </h2>
                   <p style={{ fontSize: '13px', color: '#64748b' }}>
-                    Track certified field installers across Accra, Tema, Spintex & Kumasi. Record completed installations and manage commission payouts (GH₵120 / unit).
+                    Manage engineering, hardware assembly, operations, and field logistics staff. Track salaries and performance payouts.
                   </p>
                 </div>
 
@@ -1264,15 +1430,12 @@ export default function OpsDashboard({ onExit }) {
                   }}>
                     <span>Active Team: <strong style={{ color: '#0f172a' }}>{employees.length}</strong></span>
                     <span style={{ color: '#cbd5e1' }}>•</span>
-                    <span>Total Installs: <strong style={{ color: '#0f172a' }}>{employees.reduce((acc, e) => acc + (e.meters_installed_count || 0), 0)}</strong></span>
+                    <span>Total Units Handled: <strong style={{ color: '#0f172a' }}>{employees.reduce((acc, e) => acc + (e.meters_installed_count || 0), 0)}</strong></span>
                   </div>
 
-                  <button
-                    onClick={() => setModalType('employee')}
-                    style={primaryPillBtnStyle}
-                  >
+                  <button onClick={() => setModalType('employee')} style={primaryPillBtnStyle}>
                     <Plus size={15} />
-                    <span>Add Electrician</span>
+                    <span>Add Employee</span>
                   </button>
                 </div>
               </div>
@@ -1331,14 +1494,14 @@ export default function OpsDashboard({ onExit }) {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <MapPin size={13} color="#94a3b8" />
-                        <span>{emp.zone || 'Unassigned Zone'}</span>
+                        <span>Department: {emp.department || emp.zone || 'Operations'}</span>
                       </div>
                       <div>
-                        Ghana Card: <code style={{ color: '#0f172a', fontWeight: 600 }}>{emp.ghana_card || 'Pending'}</code>
+                        Ghana Card: <code style={{ color: '#0f172a', fontWeight: 600 }}>{emp.ghana_card || 'Verified'}</code>
                       </div>
                     </div>
 
-                    {/* Performance & Commission Box */}
+                    {/* Compensation & Commission Box */}
                     <div style={{
                       backgroundColor: '#f8fafc',
                       borderRadius: '14px',
@@ -1347,11 +1510,11 @@ export default function OpsDashboard({ onExit }) {
                       marginBottom: '16px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                        <span style={{ color: '#64748b' }}>Meters Installed:</span>
-                        <strong style={{ color: '#0f172a' }}>{emp.meters_installed_count} units</strong>
+                        <span style={{ color: '#64748b' }}>Base Monthly Salary:</span>
+                        <strong style={{ color: '#0f172a' }}>GH₵ {emp.base_salary_ghc.toLocaleString()}</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ color: '#64748b' }}>Total Earned Commission:</span>
+                        <span style={{ color: '#64748b' }}>Performance / Commission:</span>
                         <strong style={{ color: '#16a34a', fontSize: '13px' }}>
                           GH₵ {(emp.meters_installed_count * emp.commission_per_meter_ghc).toLocaleString()}
                         </strong>
@@ -1371,7 +1534,7 @@ export default function OpsDashboard({ onExit }) {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}` }
                           }).catch(() => null);
-                          notify(`Recorded +1 installation for ${emp.name}`);
+                          notify(`Recorded +1 completed unit for ${emp.name}`);
                         }}
                         style={{
                           flex: 1,
@@ -1385,7 +1548,7 @@ export default function OpsDashboard({ onExit }) {
                           cursor: 'pointer'
                         }}
                       >
-                        + 1 Install Completed
+                        + 1 Unit Handled
                       </button>
 
                       <a
@@ -1443,10 +1606,7 @@ export default function OpsDashboard({ onExit }) {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setModalType('inventory')}
-                  style={primaryPillBtnStyle}
-                >
+                <button onClick={() => setModalType('inventory')} style={primaryPillBtnStyle}>
                   <Plus size={15} />
                   <span>Add Stock Part</span>
                 </button>
@@ -1564,14 +1724,11 @@ export default function OpsDashboard({ onExit }) {
                     Landlord Orders & Deployment Pipeline
                   </h2>
                   <p style={{ fontSize: '13px', color: '#64748b' }}>
-                    Manage customer pre-orders, assigned technician dispatches, and outstanding balances.
+                    Live customer orders from website and field sales. Tracks MoMo settlements, balances, and technician dispatch.
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setModalType('client')}
-                  style={primaryPillBtnStyle}
-                >
+                <button onClick={() => setModalType('client')} style={primaryPillBtnStyle}>
                   <Plus size={15} />
                   <span>New Landlord Order</span>
                 </button>
@@ -1598,8 +1755,8 @@ export default function OpsDashboard({ onExit }) {
                             fontSize: '11px',
                             padding: '4px 10px',
                             borderRadius: '9999px',
-                            backgroundColor: cli.status === 'Installed & Tested' ? '#ecfdf5' : '#fef9c3',
-                            color: cli.status === 'Installed & Tested' ? '#059669' : '#a16207',
+                            backgroundColor: cli.status.includes('Paid') ? '#ecfdf5' : '#fef9c3',
+                            color: cli.status.includes('Paid') ? '#059669' : '#a16207',
                             fontWeight: 700
                           }}>
                             {cli.status}
@@ -1628,7 +1785,7 @@ export default function OpsDashboard({ onExit }) {
                         GPS: <code style={{ color: '#2563eb', fontWeight: 600 }}>{cli.ghana_post_gps || '—'}</code>
                       </div>
                       <div>
-                        Electrician: <strong style={{ color: '#0f172a' }}>{cli.assigned_installer_name || 'Unassigned'}</strong>
+                        Installer: <strong style={{ color: '#0f172a' }}>{cli.assigned_installer_name || 'Unassigned'}</strong>
                       </div>
                       <div>
                         Serial: <code style={{ color: '#7c3aed', fontWeight: 600 }}>{cli.meter_serials || 'Pending Allocation'}</code>
@@ -1719,14 +1876,214 @@ export default function OpsDashboard({ onExit }) {
           )}
 
           {/* =================================================================== */}
+          {/* TAB 6: DOCS & MILESTONES (NEW MODULE) */}
+          {/* =================================================================== */}
+          {activeTab === 'docs' && (
+            <div>
+              {/* Header Box with Sub-tabs */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '20px',
+                padding: '28px 32px',
+                marginBottom: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '16px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+              }}>
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#0f172a', marginBottom: '4px' }}>
+                    Product Documentation, Research & Milestones
+                  </h2>
+                  <p style={{ fontSize: '13px', color: '#64748b' }}>
+                    Repository for hardware technical schematics, regulatory filings, AI research notes, and 3-year strategic milestones.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '9999px', border: '1px solid #e2e8f0' }}>
+                  <button
+                    onClick={() => setDocsSubTab('milestones')}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      backgroundColor: docsSubTab === 'milestones' ? '#0f172a' : 'transparent',
+                      color: docsSubTab === 'milestones' ? '#ffffff' : '#64748b',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    3-Year Milestones ({milestones.length})
+                  </button>
+                  <button
+                    onClick={() => setDocsSubTab('docs')}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '9999px',
+                      border: 'none',
+                      backgroundColor: docsSubTab === 'docs' ? '#0f172a' : 'transparent',
+                      color: docsSubTab === 'docs' ? '#ffffff' : '#64748b',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Technical Docs & Research ({docs.length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-tab 1: Milestones */}
+              {docsSubTab === 'milestones' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                  {milestones.map((m) => (
+                    <div
+                      key={m.id}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '3px 10px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          textTransform: 'uppercase'
+                        }}>
+                          {m.stage}
+                        </span>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: m.status === 'Completed' ? '#16a34a' : m.status === 'In Progress' ? '#2563eb' : '#64748b'
+                        }}>
+                          {m.status} • {m.target_date}
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
+                        {m.title}
+                      </h3>
+                      <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
+                        {m.description}
+                      </p>
+
+                      {/* Progress Bar */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                          <span style={{ color: '#64748b' }}>Execution Progress</span>
+                          <span style={{ color: '#0f172a' }}>{m.progress_percent}%</span>
+                        </div>
+                        <div style={{ height: '8px', backgroundColor: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+                          <div style={{
+                            width: `${m.progress_percent}%`,
+                            height: '100%',
+                            backgroundColor: m.progress_percent > 50 ? '#16a34a' : '#2563eb',
+                            borderRadius: '9999px'
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Sub-tab 2: Docs & Research */}
+              {docsSubTab === 'docs' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+                  {docs.map((d) => (
+                    <div
+                      key={d.id}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 10px',
+                            borderRadius: '9999px',
+                            backgroundColor: d.category === 'hardware_spec' ? '#eff6ff' : d.category === 'regulatory_compliance' ? '#fefce8' : '#f5f3ff',
+                            color: d.category === 'hardware_spec' ? '#2563eb' : d.category === 'regulatory_compliance' ? '#a16207' : '#7c3aed'
+                          }}>
+                            {d.category.replace('_', ' ')}
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>By {d.author}</span>
+                        </div>
+
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', lineHeight: 1.4 }}>
+                          {d.title}
+                        </h3>
+                        <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '16px' }}>
+                          {d.summary}
+                        </p>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '14px' }}>
+                          Tags: <code style={{ color: '#0f172a' }}>{d.tags}</code>
+                        </div>
+
+                        <button
+                          onClick={() => setViewingDoc(d)}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            backgroundColor: '#f8fafc',
+                            color: '#0f172a',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '9999px',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <Eye size={14} />
+                          <span>View Full Notes & Specs</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================================== */}
           {/* MODAL DIALOGS */}
           {/* =================================================================== */}
           {modalType && (
             <CleanModalWrapper
               title={
                 modalType === 'finance' ? 'Record Financial Transaction' :
-                modalType === 'employee' ? 'Add New Electrician / Staff' :
+                modalType === 'employee' ? 'Add New Employee' :
                 modalType === 'inventory' ? 'Add Hardware Stock Part' :
+                modalType === 'milestone' ? 'Add 3-Year Strategic Milestone' :
+                modalType === 'doc' ? 'Publish Technical Document / Research' :
                 'Register Landlord Order'
               }
               onClose={() => setModalType(null)}
@@ -1749,7 +2106,7 @@ export default function OpsDashboard({ onExit }) {
                     if (newEmp) setEmployees([...employees, newEmp]);
                     setModalType(null);
                     fetchAllData();
-                    notify('Electrician added');
+                    notify('Employee added');
                   }}
                 />
               )}
@@ -1775,6 +2132,51 @@ export default function OpsDashboard({ onExit }) {
                   }}
                 />
               )}
+              {modalType === 'milestone' && (
+                <MilestoneForm
+                  token={token}
+                  onSuccess={(newM) => {
+                    if (newM) setMilestones([...milestones, newM]);
+                    setModalType(null);
+                    fetchAllData();
+                    notify('Milestone published');
+                  }}
+                />
+              )}
+              {modalType === 'doc' && (
+                <DocForm
+                  token={token}
+                  onSuccess={(newD) => {
+                    if (newD) setDocs([newD, ...docs]);
+                    setModalType(null);
+                    fetchAllData();
+                    notify('Document published');
+                  }}
+                />
+              )}
+            </CleanModalWrapper>
+          )}
+
+          {/* Full Doc Viewer Modal */}
+          {viewingDoc && (
+            <CleanModalWrapper title={viewingDoc.title} onClose={() => setViewingDoc(null)}>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
+                Category: <strong>{viewingDoc.category}</strong> • Author: <strong>{viewingDoc.author}</strong>
+              </div>
+              <div style={{
+                backgroundColor: '#f8fafc',
+                padding: '20px',
+                borderRadius: '14px',
+                border: '1px solid #e2e8f0',
+                fontSize: '14px',
+                lineHeight: 1.7,
+                color: '#1e293b',
+                whiteSpace: 'pre-line',
+                maxHeight: '60vh',
+                overflowY: 'auto'
+              }}>
+                {viewingDoc.content}
+              </div>
             </CleanModalWrapper>
           )}
         </main>
@@ -1784,7 +2186,7 @@ export default function OpsDashboard({ onExit }) {
 }
 
 // ---------------------------------------------------------------------------
-// PILL SUB-COMPONENTS
+// SUB-COMPONENTS & FORMS
 // ---------------------------------------------------------------------------
 
 const primaryPillBtnStyle = {
@@ -1931,7 +2333,7 @@ function CleanModalWrapper({ title, onClose, children }) {
         borderRadius: '24px',
         padding: '32px',
         width: '100%',
-        maxWidth: '520px',
+        maxWidth: '540px',
         maxHeight: '90vh',
         overflowY: 'auto',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
@@ -1974,6 +2376,10 @@ function FinanceForm({ token, onSuccess }) {
     reference: ''
   });
 
+  const setPreset = (amt, desc, cat, type) => {
+    setFormData({ ...formData, amount_ghc: amt.toString(), description: desc, category: cat, type: type });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
@@ -1993,7 +2399,42 @@ function FinanceForm({ token, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Quick Amount Presets */}
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>Quick Presets</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <button
+            type="button"
+            onClick={() => setPreset(1250, '1x Unity Meter Sale', 'meter_sale', 'income')}
+            style={presetBtnStyle}
+          >
+            1x Meter (GH₵1,250)
+          </button>
+          <button
+            type="button"
+            onClick={() => setPreset(2500, '2x Unity Meters Sale', 'meter_sale', 'income')}
+            style={presetBtnStyle}
+          >
+            2x Meters (GH₵2,500)
+          </button>
+          <button
+            type="button"
+            onClick={() => setPreset(625, '50% Pre-Order Deposit', 'deposit', 'income')}
+            style={presetBtnStyle}
+          >
+            50% Deposit (GH₵625)
+          </button>
+          <button
+            type="button"
+            onClick={() => setPreset(120, 'Installer Commission Payout', 'technician_payout', 'expense')}
+            style={presetBtnStyle}
+          >
+            Install Fee (GH₵120)
+          </button>
+        </div>
+      </div>
+
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Entry Type</label>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -2054,7 +2495,7 @@ function FinanceForm({ token, onSuccess }) {
           onChange={(e) => setFormData({ ...formData, account: e.target.value })}
           style={cleanInputStyle}
         >
-          <option value="momo">MTN / Telecel MoMo Wallet</option>
+          <option value="momo">MTN / Telecel / AT MoMo Wallet</option>
           <option value="bank">Bank Account (Ecobank / Stanbic)</option>
           <option value="petty_cash">Petty Cash</option>
         </select>
@@ -2094,7 +2535,7 @@ function FinanceForm({ token, onSuccess }) {
         />
       </div>
 
-      <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '10px' }}>
+      <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '8px' }}>
         Save Transaction
       </button>
     </form>
@@ -2104,17 +2545,25 @@ function FinanceForm({ token, onSuccess }) {
 function EmployeeForm({ token, onSuccess }) {
   const [formData, setFormData] = useState({
     name: '',
-    role: 'Field Electrician',
+    role: 'Lead Electrical Engineer',
+    department: 'Engineering & Hardware',
     phone: '',
     momo_number: '',
     ghana_card: '',
     zone: 'Accra Central',
+    base_salary_ghc: 3500,
     commission_per_meter_ghc: 120
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData, id: Date.now(), meters_installed_count: 0, status: 'Active' };
+    const payload = {
+      ...formData,
+      id: Date.now(),
+      meters_installed_count: 0,
+      status: 'Active',
+      employment_type: 'Full-time'
+    };
     try {
       await fetch(`${API_BASE}/api/ops/employees`, {
         method: 'POST',
@@ -2128,27 +2577,40 @@ function EmployeeForm({ token, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Full Name</label>
-        <input required type="text" placeholder="e.g. Kwabena Mensah" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={cleanInputStyle} />
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Employee Full Name</label>
+        <input required type="text" placeholder="e.g. Kofi Boateng" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={cleanInputStyle} />
       </div>
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Role</label>
-        <input required type="text" placeholder="e.g. Certified Field Electrician" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} style={cleanInputStyle} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Job Role</label>
+          <input required type="text" placeholder="e.g. Hardware Engineer" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} style={cleanInputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Department</label>
+          <select value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} style={cleanInputStyle}>
+            <option value="Engineering & Hardware">Engineering & Hardware</option>
+            <option value="Field Operations">Field Operations</option>
+            <option value="Assembly & QA">Assembly & QA</option>
+            <option value="Customer Sales & Ops">Customer Sales & Ops</option>
+          </select>
+        </div>
       </div>
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Phone Number</label>
         <input required type="text" placeholder="+233 24 000 0000" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} style={cleanInputStyle} />
       </div>
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Service Zone</label>
-        <input type="text" placeholder="e.g. Spintex / Tema / East Legon" value={formData.zone} onChange={(e) => setFormData({ ...formData, zone: e.target.value })} style={cleanInputStyle} />
-      </div>
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Commission per Install (GH₵)</label>
-        <input type="number" value={formData.commission_per_meter_ghc} onChange={(e) => setFormData({ ...formData, commission_per_meter_ghc: parseFloat(e.target.value) })} style={cleanInputStyle} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Base Salary (GH₵)</label>
+          <input type="number" value={formData.base_salary_ghc} onChange={(e) => setFormData({ ...formData, base_salary_ghc: parseFloat(e.target.value) || 0 })} style={cleanInputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Commission/Unit (GH₵)</label>
+          <input type="number" value={formData.commission_per_meter_ghc} onChange={(e) => setFormData({ ...formData, commission_per_meter_ghc: parseFloat(e.target.value) || 0 })} style={cleanInputStyle} />
+        </div>
       </div>
       <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '10px' }}>
-        Add Electrician / Staff
+        Add Employee
       </button>
     </form>
   );
@@ -2250,10 +2712,6 @@ function ClientForm({ token, onSuccess }) {
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Location / Landmark</label>
         <input required type="text" placeholder="e.g. East Legon near American House" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} style={cleanInputStyle} />
       </div>
-      <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>GhanaPost GPS</label>
-        <input type="text" placeholder="e.g. GA-194-2819" value={formData.ghana_post_gps} onChange={(e) => setFormData({ ...formData, ghana_post_gps: e.target.value })} style={cleanInputStyle} />
-      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         <div>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Meters Ordered</label>
@@ -2284,6 +2742,125 @@ function ClientForm({ token, onSuccess }) {
   );
 }
 
+function MilestoneForm({ token, onSuccess }) {
+  const [formData, setFormData] = useState({
+    stage: 'Stage 01',
+    title: '',
+    description: '',
+    progress_percent: 0,
+    target_date: 'Q3 2027',
+    status: 'In Progress'
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = { ...formData, id: Date.now() };
+    try {
+      await fetch(`${API_BASE}/api/ops/milestones`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    } catch {}
+    onSuccess(payload);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Stage / Pillar</label>
+        <select value={formData.stage} onChange={(e) => setFormData({ ...formData, stage: e.target.value })} style={cleanInputStyle}>
+          <option value="Stage 01">Stage 01: Unity Meters</option>
+          <option value="Stage 02">Stage 02: Appliance Monitors</option>
+          <option value="Stage 03">Stage 03: GridGuard Anti-Theft</option>
+          <option value="Stage 04">Stage 04: Distributed Solar</option>
+          <option value="Corporate">Corporate & Regulatory</option>
+        </select>
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Milestone Title</label>
+        <input required type="text" placeholder="e.g. Deploy First 500 Unity Meters" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} style={cleanInputStyle} />
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Description</label>
+        <textarea rows={3} placeholder="Key objectives and delivery milestones..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} style={{ ...cleanInputStyle, resize: 'vertical' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Progress (%)</label>
+          <input type="number" min="0" max="100" value={formData.progress_percent} onChange={(e) => setFormData({ ...formData, progress_percent: parseInt(e.target.value) || 0 })} style={cleanInputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Target Date</label>
+          <input type="text" placeholder="e.g. Q2 2027" value={formData.target_date} onChange={(e) => setFormData({ ...formData, target_date: e.target.value })} style={cleanInputStyle} />
+        </div>
+      </div>
+      <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '10px' }}>
+        Save Milestone
+      </button>
+    </form>
+  );
+}
+
+function DocForm({ token, onSuccess }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    category: 'hardware_spec',
+    author: 'Engineering Team',
+    summary: '',
+    content: '',
+    tags: 'Hardware, Spec'
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = { ...formData, id: Date.now() };
+    try {
+      await fetch(`${API_BASE}/api/ops/docs`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    } catch {}
+    onSuccess(payload);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Document Title</label>
+        <input required type="text" placeholder="e.g. Unity Meter 3-in-1 Hardware Schematic" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} style={cleanInputStyle} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Category</label>
+          <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={cleanInputStyle}>
+            <option value="hardware_spec">Hardware Specification</option>
+            <option value="research_whitepaper">Research & Whitepaper</option>
+            <option value="regulatory_compliance">Regulatory Compliance</option>
+            <option value="firmware_code">Firmware & Software</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Author / Lead</label>
+          <input type="text" value={formData.author} onChange={(e) => setFormData({ ...formData, author: e.target.value })} style={cleanInputStyle} />
+        </div>
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Executive Summary</label>
+        <input type="text" placeholder="Short description of this document..." value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} style={cleanInputStyle} />
+      </div>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>Full Notes / Content (Markdown supported)</label>
+        <textarea rows={5} placeholder="Full technical specifications, diagrams, pinouts, or research results..." value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} style={{ ...cleanInputStyle, resize: 'vertical' }} />
+      </div>
+      <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '10px' }}>
+        Publish Document
+      </button>
+    </form>
+  );
+}
+
 const cleanInputStyle = {
   width: '100%',
   padding: '11px 14px',
@@ -2294,4 +2871,15 @@ const cleanInputStyle = {
   fontSize: '14px',
   outline: 'none',
   boxSizing: 'border-box'
+};
+
+const presetBtnStyle = {
+  padding: '5px 12px',
+  backgroundColor: '#f1f5f9',
+  border: '1px solid #e2e8f0',
+  borderRadius: '9999px',
+  fontSize: '11px',
+  fontWeight: 600,
+  color: '#334155',
+  cursor: 'pointer'
 };
