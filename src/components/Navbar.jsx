@@ -56,6 +56,7 @@ export default function Navbar({ onOpenOrderModal }) {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
+              gap: '12px',
               transition: 'opacity 0.2s ease',
             }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
@@ -71,6 +72,22 @@ export default function Navbar({ onOpenOrderModal }) {
                 display: 'block',
               }}
             />
+            <span
+              className="nav-slogan"
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#6b7280',
+                borderLeft: '1px solid #e5e7eb',
+                paddingLeft: '12px',
+                lineHeight: 1.2,
+                userSelect: 'none',
+              }}
+            >
+              Rethink Possibilities
+            </span>
           </div>
 
           {/* Desktop Nav Links */}
@@ -126,6 +143,37 @@ export default function Navbar({ onOpenOrderModal }) {
               onMouseLeave={(e) => (e.currentTarget.style.color = '#1f2937')}
             >
               Unity Meter
+            </button>
+            <button
+              onClick={() => scrollTo('baselabs')}
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#1f2937',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#7c3aed')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#1f2937')}
+            >
+              <span>BaseLabs</span>
+              <span
+                style={{
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                  color: '#7c3aed',
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                Software
+              </span>
             </button>
           </nav>
 
@@ -249,6 +297,35 @@ export default function Navbar({ onOpenOrderModal }) {
             }}
           >
             Unity Meter (3-in-1)
+          </button>
+          <button
+            onClick={() => scrollTo('baselabs')}
+            style={{
+              textAlign: 'left',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#7c3aed',
+              padding: '8px 0',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>BaseLabs (Software Division)</span>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                color: '#7c3aed',
+                padding: '2px 8px',
+                borderRadius: '9999px',
+              }}
+            >
+              Base16 & Base12
+            </span>
           </button>
           <button
             onClick={() => {

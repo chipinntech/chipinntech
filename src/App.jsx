@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import MasterPlanSection from './components/MasterPlanSection';
 import UnityMeterSection from './components/UnityMeterSection';
+import BaseLabsSection from './components/BaseLabsSection';
 import OrderModal from './components/OrderModal';
 import Footer from './components/Footer';
 import OpsDashboard from './components/OpsDashboard';
@@ -59,6 +60,9 @@ export default function App() {
 
         {/* 3. Milestone 1 Flagship Showcase: 50/50 Side-by-Side (Unity Meter Image + Value & Order) */}
         <UnityMeterSection onOpenOrderModal={handleOpenOrderModal} />
+
+        {/* 4. BaseLabs Software Division: Base16 & Base12 Products Showcase */}
+        <BaseLabsSection onOpenOrderModal={handleOpenOrderModal} />
       </main>
 
       {/* Footer */}

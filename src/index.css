@@ -267,6 +267,9 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 768px) {
   /* Navbar */
+  .nav-slogan {
+    display: none !important;
+  }
   .header-nav {
     padding: 12px 18px !important;
   }

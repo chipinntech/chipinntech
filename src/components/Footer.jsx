@@ -31,12 +31,25 @@ export default function Footer({ onOpenOrderModal, onOpenOps }) {
         >
           {/* Column 1: Brand Logo Only & Mission */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
               <img
                 src="/assets/chipinn-logo-transparent.png"
                 alt="Chipinn"
                 style={{ height: '34px', width: 'auto', display: 'block' }}
               />
+            </div>
+
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#1b5aff',
+                marginBottom: '14px',
+              }}
+            >
+              Rethink Possibilities
             </div>
 
             <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.6, marginBottom: '20px' }}>
@@ -78,6 +91,14 @@ export default function Footer({ onOpenOrderModal, onOpenOps }) {
                 onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
               >
                 Unity Meter (3-in-1 Sub-meter)
+              </button>
+              <button
+                onClick={() => scrollTo('baselabs')}
+                style={{ textAlign: 'left', color: '#4b5563', transition: 'color 0.2s', fontWeight: 500 }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#7c3aed')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
+              >
+                BaseLabs (Software Division)
               </button>
               <button
                 onClick={onOpenOrderModal}

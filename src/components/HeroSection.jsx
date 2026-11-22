@@ -63,7 +63,7 @@ export default function HeroSection({ onOpenOrderModal }) {
               textShadow: '0 2px 10px rgba(0, 0, 0, 0.95)',
             }}
           >
-            The 3-Year Master Plan · Ghana
+            Rethink Possibilities · The 3-Year Master Plan
           </div>
 
           {/* Balanced, Sleek Headline */}
