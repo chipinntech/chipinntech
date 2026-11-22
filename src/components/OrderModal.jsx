@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, Zap, ArrowRight, MessageCircle, Smartphone, CreditCard, ShieldCheck } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const API_BASE = 'http://127.0.0.1:8000';
 
@@ -48,7 +50,20 @@ export default function OrderModal({ isOpen, onClose }) {
     };
 
     try {
-      // 1. Send to FastAPI Ops Backend
+      // 1. Direct Cloud Firestore write (Frontend ➔ Firebase Serverless)
+      try {
+        const firestoreDoc = await addDoc(collection(db, 'orders'), {
+          ...newOrderData,
+          firestoreCreatedAt: serverTimestamp(),
+          payment_status: amountToPayNow > 0 ? (formData.payment_method === 'deposit_momo' ? 'Deposit Paid' : 'Paid via MoMo') : 'Cash on Delivery',
+          order_status: 'Pending Dispatch'
+        });
+        newOrderData.firestoreId = firestoreDoc.id;
+      } catch (fsError) {
+        console.warn('Firestore write (ensure Firestore Database is enabled in Firebase Console):', fsError);
+      }
+
+      // 2. Send to FastAPI Ops Backend if running locally
       const res = await fetch(`${API_BASE}/api/ops/public/order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
