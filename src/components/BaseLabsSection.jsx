@@ -1,561 +1,696 @@
-import React, { useState } from 'react';
-import {
-  School,
-  BookOpen,
-  CheckCircle2,
-  ExternalLink,
-  Sparkles,
-  ArrowRight,
-  Layers,
-  ShieldCheck,
-  Users,
-  Calendar,
-  FileText,
-  Globe,
-  X,
-  Code2
+import React, { useState, useRef } from 'react';
+import { 
+  School, 
+  BookOpen, 
+  Sparkles, 
+  ExternalLink, 
+  CheckCircle2, 
+  ChevronLeft, 
+  ChevronRight, 
+  ArrowRight, 
+  X, 
+  Code2, 
+  Cpu, 
+  Zap, 
+  ShieldCheck, 
+  Bot,
+  Layers
 } from 'lucide-react';
 
 // ============================================================================
-// BASELABS PRODUCT CONFIGURATION
-// You can update the links, descriptions, and features for each product here
+// BASELABS PRODUCTS CONFIGURATION
+// You can edit product descriptions, links, and details here anytime
 // ============================================================================
 export const BASELABS_PRODUCTS = [
   {
     id: 'base16',
     name: 'Base16',
-    subtitle: 'Institutional School Management OS',
+    tagline: 'AI-Powered School Management OS',
     category: 'Educational Institutions',
-    badge: 'Live & Deploying',
-    accentColor: '#7c3aed',
-    accentBg: 'rgba(124, 58, 237, 0.08)',
+    badge: 'Flagship Platform',
+    accentColor: '#a855f7',
+    glowColor: 'rgba(168, 85, 247, 0.4)',
     icon: School,
-    websiteUrl: 'https://base16schools.com', // Update with your Base16 link
-    shortDescription: 'A unified cloud administrative suite connecting school proprietors, teachers, parents, and students with automated Mobile Money tuition reconciliation and biometric attendance.',
-    targetAudience: 'K-12 Private Schools, International Academies, & Tertiary Colleges',
+    websiteUrl: 'https://base16schools.com', // Replace with your live Base16 URL
+    shortPitch: 'Eliminates paper chaos and manual administration with automated Mobile Money tuition reconciliation, smart biometric attendance, and predictive gradebook analytics.',
+    audience: 'K-12 Schools, Academies & Tertiary Campuses',
     image: '/assets/base16-dashboard.jpg',
-    keyFeatures: [
-      'Automated Tuition Ledger & Mobile Money (MoMo) Auto-Reconciliation',
-      'Biometric & RFID Attendance Tracking for Students & Staff',
-      'Continuous Assessment, Gradebooks & 1-Click Term Report Generator',
-      'Parent Mobile Portal & Real-time SMS Attendance/Fee Alerts',
-      'Hostel, Facility & Automated Timetable Schedule Planner',
+    features: [
+      'Automated Tuition Ledger with Instant MoMo Reconciliation',
+      'Biometric & RFID Student/Staff Attendance Analytics',
+      'AI Continuous Assessment & 1-Click Term Report Generator',
+      'Parent Mobile Portal with Instant WhatsApp/SMS Alerts',
       'Multi-Branch Consolidated Reporting for School Chains',
+      'Automated Timetable, Exam & Room Scheduling Engine',
     ],
     technicalHighlights: [
-      'Role-based access control for bursars, teachers, and heads of school',
-      'Offline-first synchronization for rural and low-connectivity campuses',
-      'Bank-grade encrypted student records and financial audit trails',
+      'Role-based permissions for bursars, teachers, principals, and owners',
+      'Offline-first synchronization for rural and low-bandwidth schools',
+      'Bank-grade encrypted student records and financial ledger audit trails',
     ],
   },
   {
     id: 'base12',
     name: 'Base12',
-    subtitle: 'Academic Research & Thesis Writing Engine',
+    tagline: 'AI Academic Research & Thesis Engine',
     category: 'Higher Ed & Research',
-    badge: 'Active Research Engine',
-    accentColor: '#1b5aff',
-    accentBg: 'rgba(27, 90, 255, 0.08)',
+    badge: 'Research Accelerator',
+    accentColor: '#38bdf8',
+    glowColor: 'rgba(56, 189, 248, 0.4)',
     icon: BookOpen,
-    websiteUrl: 'https://base12studios.com', // Update with your Base12 link
-    shortDescription: 'Engineered specifically for undergraduate final-year students (4th years) and postgraduate scholars. Eliminates thesis writing chaos with structured chapter scaffolding, citation synthesis, and defense metrics.',
-    targetAudience: 'Final-Year Undergraduate Scholars (4th Years), Master’s Candidates, & Faculty Labs',
+    websiteUrl: 'https://base12thesis.com', // Replace with your live Base12 URL
+    shortPitch: 'Engineered for final-year students (4th years) and postgraduate scholars. Removes the anxiety of thesis writing with automated citation formatting, literature gap discovery, and defense metrics.',
+    audience: 'Undergraduate 4th Years, Master’s Candidates & University Labs',
     image: '/assets/base12-thesis.jpg',
-    keyFeatures: [
-      'Guided Chapters 1–5 Academic Scaffolding with Methodology Templates',
-      '1-Click IEEE, APA 7th, Harvard & Chicago Automated Citation Engine',
-      'Literature Review Synthesis & Academic Research Gap Identifier',
-      'Algorithmic Thesis Defense Readiness & Question Predictor Metric',
-      'Plagiarism Prevention & Cross-Chapter Argument Consistency Check',
-      'Automated LaTeX & University-Formatted Microsoft Word Export',
+    features: [
+      'Guided Chapters 1–5 Scaffolding with Methodology Templates',
+      '1-Click IEEE, APA 7th, Harvard & Chicago Automated Citations',
+      'AI Literature Review Synthesis & Academic Research Gap Finder',
+      'Predictive Thesis Defense Readiness Score & Question Predictor',
+      'Plagiarism Prevention & Cross-Chapter Argument Consistency',
+      'Automated LaTeX & University-Compliant Word/PDF Export',
     ],
     technicalHighlights: [
-      'Vector-indexed academic paper semantic search across millions of open-access papers',
-      'Real-time supervisor annotation and peer collaborative co-authoring',
-      'Automated PowerPoint slide deck generator from completed thesis chapters',
+      'Semantic academic paper search across millions of peer-reviewed sources',
+      'Real-time supervisor annotations, revision tracking, and defense slide generator',
+      'Built-in data analysis copilot for survey disaggregation and charts',
+    ],
+  },
+  {
+    id: 'base-ai-studio',
+    name: 'BaseLabs Studio',
+    tagline: 'Bespoke AI Agents & Custom Software',
+    category: 'Custom Engineering',
+    badge: 'Specialized Labs',
+    accentColor: '#10b981',
+    glowColor: 'rgba(16, 185, 129, 0.4)',
+    icon: Bot,
+    websiteUrl: 'mailto:contact@chipinntech.com?subject=BaseLabs%20Custom%20AI%20Software%20Inquiry',
+    shortPitch: 'We don’t just write code — we build intelligent AI agents, telemetry dashboards, and high-performance custom platforms tailored to your business operations.',
+    audience: 'Enterprises, Utilities & Rapidly Scaling Startups',
+    image: '/assets/base16-dashboard-raw.png',
+    features: [
+      'Custom Autonomous AI Agents for Workflow Automation',
+      'High-Throughput Edge Telemetry & IoT Cloud Dashboards',
+      'Enterprise Mobile Money & Payment Gateway Integrations',
+      'Legacy Database Modernization & Cloud Migrations',
+      'Dedicated SLA Support & On-Premises Air-Gapped Deployments',
+      'Rapid Prototyping to Full Production within Weeks',
+    ],
+    technicalHighlights: [
+      'Full-stack React, FastAPI, Python ML, and Rust edge performance',
+      'Encrypted telemetry pipelines handling millions of daily data points',
+      'Architected under our core mission: Rethink Possibilities',
     ],
   },
 ];
 
 export default function BaseLabsSection({ onOpenOrderModal }) {
-  const [activeProductId, setActiveProductId] = useState('base16');
-  const [detailModalProduct, setDetailModalProduct] = useState(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [detailProduct, setDetailProduct] = useState(null);
+  const scrollContainerRef = useRef(null);
 
-  const activeProduct = BASELABS_PRODUCTS.find((p) => p.id === activeProductId) || BASELABS_PRODUCTS[0];
+  const scrollToCard = (index) => {
+    setActiveIdx(index);
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const card = container.children[index];
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+  };
+
+  const handlePrev = () => {
+    const nextIdx = (activeIdx - 1 + BASELABS_PRODUCTS.length) % BASELABS_PRODUCTS.length;
+    scrollToCard(nextIdx);
+  };
+
+  const handleNext = () => {
+    const nextIdx = (activeIdx + 1) % BASELABS_PRODUCTS.length;
+    scrollToCard(nextIdx);
+  };
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const cardWidth = container.offsetWidth * 0.85;
+    const newIdx = Math.round(scrollLeft / (cardWidth || 1));
+    if (newIdx >= 0 && newIdx < BASELABS_PRODUCTS.length && newIdx !== activeIdx) {
+      setActiveIdx(newIdx);
+    }
+  };
 
   return (
     <section
       id="baselabs"
       style={{
-        padding: '100px 24px 90px',
-        backgroundColor: '#fafbfc',
-        borderTop: '1px solid #e5e7eb',
-        borderBottom: '1px solid #e5e7eb',
         position: 'relative',
+        padding: '64px 20px 72px',
+        backgroundColor: '#05070e',
+        color: '#ffffff',
+        overflow: 'hidden',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
       }}
     >
-      <div style={{ maxWidth: '1360px', margin: '0 auto' }}>
+      {/* Radiant Glass Ambient Glows */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '-10%',
+          left: '15%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(168, 85, 247, 0) 70%)',
+          pointerEvents: 'none',
+          filter: 'blur(60px)',
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '-10%',
+          right: '10%',
+          width: '550px',
+          height: '550px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(56, 189, 248, 0.14) 0%, rgba(56, 189, 248, 0) 70%)',
+          pointerEvents: 'none',
+          filter: 'blur(70px)',
+          zIndex: 0,
+        }}
+      />
 
-        {/* Section Header */}
-        <div style={{ textAlign: 'center', maxWidth: '820px', margin: '0 auto 50px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 16px',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(124, 58, 237, 0.09)',
-              color: '#7c3aed',
-              fontSize: '12px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              marginBottom: '16px',
-            }}
-          >
-            <Sparkles size={14} /> BaseLabs · Software Division
-          </div>
-
-          <h2
-            style={{
-              fontSize: 'clamp(32px, 4.2vw, 50px)',
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1.15,
-              letterSpacing: '-0.03em',
-              marginBottom: '16px',
-            }}
-          >
-            Intelligent Software for Institutions & Scholars
-          </h2>
-
-          <p
-            style={{
-              fontSize: 'clamp(16px, 1.8vw, 18px)',
-              color: '#4b5563',
-              lineHeight: 1.6,
-              maxWidth: '740px',
-              margin: '0 auto',
-            }}
-          >
-            Under the banner of <strong>Rethink Possibilities</strong>, BaseLabs builds transformative enterprise platforms and research engines designed to eliminate friction in African schools and universities.
-          </p>
-
-          {/* Product Selector Cards */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '14px',
-              flexWrap: 'wrap',
-              marginTop: '34px',
-            }}
-          >
-            {BASELABS_PRODUCTS.map((prod) => {
-              const IconComp = prod.icon;
-              const isSelected = prod.id === activeProductId;
-              return (
-                <button
-                  key={prod.id}
-                  onClick={() => setActiveProductId(prod.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.22s ease',
-                    border: isSelected ? `2px solid ${prod.accentColor}` : '1px solid #d1d5db',
-                    backgroundColor: isSelected ? '#ffffff' : '#f3f4f6',
-                    color: isSelected ? '#111827' : '#4b5563',
-                    boxShadow: isSelected ? '0 8px 24px rgba(0,0,0,0.08)' : 'none',
-                    transform: isSelected ? 'translateY(-2px)' : 'none',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: isSelected ? prod.accentBg : 'rgba(0,0,0,0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: isSelected ? prod.accentColor : '#6b7280',
-                    }}
-                  >
-                    <IconComp size={18} />
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 700 }}>{prod.name}</span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                          backgroundColor: prod.accentBg,
-                          color: prod.accentColor,
-                        }}
-                      >
-                        {prod.category}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '12px', color: '#6b7280' }}>{prod.subtitle}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Active Product Detailed View */}
+      <div style={{ maxWidth: '1360px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        
+        {/* Compact, High-Impact Top Header */}
         <div
           style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '24px',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.05)',
-            overflow: 'hidden',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: '16px',
+            marginBottom: '28px',
           }}
         >
-          {/* Top Bar with Product Links */}
-          <div
-            style={{
-              padding: '20px 32px',
-              backgroundColor: '#f9fafb',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
+          {/* Left Brand & Title */}
+          <div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                border: '1px solid rgba(168, 85, 247, 0.3)',
+                color: '#d8b4fe',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                marginBottom: '8px',
+              }}
+            >
+              <Sparkles size={12} color="#c084fc" />
+              <span>BaseLabs · AI Software Division</span>
+            </div>
+
+            <h2
+              style={{
+                fontSize: 'clamp(24px, 3.2vw, 36px)',
+                fontWeight: 800,
+                lineHeight: 1.15,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                margin: '0 0 6px 0',
+              }}
+            >
+              We Build AI-Powered Software That Solves Real Problems.
+            </h2>
+
+            <p
+              style={{
+                fontSize: '14.5px',
+                color: '#94a3b8',
+                lineHeight: 1.5,
+                maxWidth: '640px',
+                margin: 0,
+              }}
+            >
+              From institutional school operations on <strong>Base16</strong> to academic research acceleration on <strong>Base12</strong> — crafted with intelligence, speed, and precision.
+            </p>
+          </div>
+
+          {/* Right: Glass Carousel Controls & Indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Pill Selectors */}
+            <div
+              style={{
+                display: 'flex',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '3px',
+                borderRadius: '10px',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              {BASELABS_PRODUCTS.map((p, idx) => (
+                <button
+                  key={p.id}
+                  onClick={() => scrollToCard(idx)}
+                  style={{
+                    backgroundColor: activeIdx === idx ? p.accentColor : 'transparent',
+                    color: activeIdx === idx ? '#ffffff' : '#94a3b8',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '7px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                onClick={handlePrev}
+                aria-label="Previous Product"
                 style={{
-                  width: '38px',
-                  height: '38px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '10px',
-                  backgroundColor: activeProduct.accentBg,
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.14)',
+                  color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: activeProduct.accentColor,
-                }}
-              >
-                <activeProduct.icon size={22} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>
-                    {activeProduct.name}
-                  </h3>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: activeProduct.accentColor,
-                      backgroundColor: activeProduct.accentBg,
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {activeProduct.badge}
-                  </span>
-                </div>
-                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
-                  {activeProduct.subtitle}
-                </p>
-              </div>
-            </div>
-
-            {/* Direct External Product Link & Detail Trigger */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setDetailModalProduct(activeProduct)}
-                style={{
-                  padding: '9px 18px',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  backgroundColor: '#ffffff',
-                  color: '#374151',
-                  border: '1px solid #d1d5db',
                   cursor: 'pointer',
-                  transition: 'all 0.18s',
+                  transition: 'all 0.2s',
+                  backdropFilter: 'blur(12px)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)';
+                }}
               >
-                View Full Specs & Overview
+                <ChevronLeft size={18} />
               </button>
 
-              <a
-                href={activeProduct.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleNext}
+                aria-label="Next Product"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 20px',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  backgroundColor: activeProduct.accentColor,
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.14)',
                   color: '#ffffff',
-                  textDecoration: 'none',
-                  boxShadow: `0 3px 12px ${activeProduct.accentColor}40`,
-                  transition: 'all 0.18s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-              >
-                <span>Launch {activeProduct.name} Site</span>
-                <ExternalLink size={14} />
-              </a>
-            </div>
-          </div>
-
-          {/* Grid Layout: Left Content, Right Interactive Screenshot */}
-          <div
-            style={{
-              padding: '36px 32px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-              gap: '40px',
-              alignItems: 'center',
-            }}
-          >
-            {/* Left Description & Feature Matrix */}
-            <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: activeProduct.accentColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  marginBottom: '10px',
-                }}
-              >
-                <Users size={14} /> Target: {activeProduct.targetAudience}
-              </div>
-
-              <p
-                style={{
-                  fontSize: '16px',
-                  color: '#374151',
-                  lineHeight: 1.6,
-                  marginBottom: '26px',
-                }}
-              >
-                {activeProduct.shortDescription}
-              </p>
-
-              <h4
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: '#111827',
-                  marginBottom: '14px',
-                }}
-              >
-                Key Platform Capabilities
-              </h4>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr',
-                  gap: '11px',
-                  marginBottom: '32px',
-                }}
-              >
-                {activeProduct.keyFeatures.map((feat, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '10px',
-                      fontSize: '14px',
-                      color: '#4b5563',
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    <CheckCircle2
-                      size={17}
-                      color={activeProduct.accentColor}
-                      style={{ flexShrink: 0, marginTop: '2px' }}
-                    />
-                    <span>{feat}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Action Links */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <a
-                  href={activeProduct.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    backgroundColor: activeProduct.accentColor,
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <span>Go to {activeProduct.websiteUrl.replace('https://', '')}</span>
-                  <ArrowRight size={15} />
-                </a>
-
-                <button
-                  onClick={() => setDetailModalProduct(activeProduct)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '12px 20px',
-                    borderRadius: '8px',
-                    backgroundColor: '#ffffff',
-                    color: '#111827',
-                    border: '1px solid #d1d5db',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <FileText size={15} /> Product Details
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Interface Image Showcase */}
-            <div>
-              <div
-                style={{
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08)',
-                  backgroundColor: '#0f1118',
-                  position: 'relative',
-                  cursor: 'pointer',
-                }}
-                onClick={() => setDetailModalProduct(activeProduct)}
-              >
-                <img
-                  src={activeProduct.image}
-                  alt={`${activeProduct.name} Interface Dashboard`}
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    objectFit: 'cover',
-                    transition: 'transform 0.3s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                />
-
-                {/* Floating pill over image */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '14px',
-                    right: '14px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#ffffff',
-                    padding: '6px 14px',
-                    borderRadius: '9999px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Sparkles size={12} color="#38bdf8" /> Click to expand details
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: '10px',
                   display: 'flex',
-                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                  padding: '0 4px',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  backdropFilter: 'blur(12px)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)';
                 }}
               >
-                <span>Live production UI for {activeProduct.name}</span>
-                <span style={{ fontWeight: 600, color: activeProduct.accentColor }}>
-                  {activeProduct.category}
-                </span>
-              </div>
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Horizontal Glass Carousel Track */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="no-scrollbar"
+          style={{
+            display: 'flex',
+            gap: '24px',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            scrollBehavior: 'smooth',
+            paddingBottom: '16px',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {BASELABS_PRODUCTS.map((prod, idx) => {
+            const IconComponent = prod.icon;
+            const isFeatured = idx === activeIdx;
+
+            return (
+              <div
+                key={prod.id}
+                className="glass-panel-dark"
+                style={{
+                  flex: '0 0 100%',
+                  maxWidth: '100%',
+                  scrollSnapAlign: 'center',
+                  borderRadius: '24px',
+                  padding: '36px 32px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                  gap: '36px',
+                  alignItems: 'center',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxShadow: isFeatured ? `0 20px 60px ${prod.glowColor}` : '0 16px 40px rgba(0, 0, 0, 0.4)',
+                  border: isFeatured ? `1px solid ${prod.accentColor}70` : '1px solid rgba(255, 255, 255, 0.12)',
+                }}
+              >
+                {/* Left Product Information & Actions */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '12px',
+                        backgroundColor: `${prod.accentColor}25`,
+                        border: `1px solid ${prod.accentColor}50`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: prod.accentColor,
+                      }}
+                    >
+                      <IconComponent size={22} />
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff' }}>
+                          {prod.name}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: `${prod.accentColor}25`,
+                            color: prod.accentColor,
+                            border: `1px solid ${prod.accentColor}40`,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {prod.badge}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                        {prod.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: 'clamp(18px, 2.2vw, 22px)',
+                      fontWeight: 700,
+                      color: '#f8fafc',
+                      lineHeight: 1.3,
+                      marginBottom: '12px',
+                    }}
+                  >
+                    {prod.tagline}
+                  </h3>
+
+                  <p
+                    style={{
+                      fontSize: '14.5px',
+                      color: '#cbd5e1',
+                      lineHeight: 1.6,
+                      marginBottom: '22px',
+                    }}
+                  >
+                    {prod.shortPitch}
+                  </p>
+
+                  {/* Capabilities List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '28px' }}>
+                    {prod.features.slice(0, 4).map((feat, fIdx) => (
+                      <div
+                        key={fIdx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          fontSize: '13.5px',
+                          color: '#e2e8f0',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        <CheckCircle2
+                          size={16}
+                          color={prod.accentColor}
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Glass Action Buttons */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <a
+                      href={prod.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '11px 22px',
+                        borderRadius: '10px',
+                        backgroundColor: prod.accentColor,
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '13.5px',
+                        textDecoration: 'none',
+                        boxShadow: `0 4px 18px ${prod.accentColor}50`,
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.opacity = '0.92';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    >
+                      <span>Open {prod.name}</span>
+                      <ExternalLink size={14} />
+                    </a>
+
+                    <button
+                      onClick={() => setDetailProduct(prod)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '11px 18px',
+                        borderRadius: '10px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.16)',
+                        backdropFilter: 'blur(10px)',
+                        fontSize: '13.5px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.14)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)';
+                      }}
+                    >
+                      <span>View Architecture</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right: Glass-Framed Interactive UI Mockup */}
+                <div
+                  style={{
+                    position: 'relative',
+                    borderRadius: '18px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+                    backgroundColor: '#0a0d16',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setDetailProduct(prod)}
+                >
+                  <img
+                    src={prod.image}
+                    alt={`${prod.name} Live UI Dashboard`}
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      maxHeight: '380px',
+                      display: 'block',
+                      objectFit: 'cover',
+                      objectPosition: 'top center',
+                      transition: 'transform 0.4s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  />
+
+                  {/* Glass Floating Overlay Badge */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      backgroundColor: 'rgba(10, 14, 26, 0.82)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: prod.accentColor,
+                        boxShadow: `0 0 8px ${prod.accentColor}`,
+                      }}
+                    />
+                    <span>AI Engine Live</span>
+                  </div>
+
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      right: '12px',
+                      backgroundColor: 'rgba(10, 14, 26, 0.85)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.14)',
+                      color: '#ffffff',
+                      padding: '5px 12px',
+                      borderRadius: '9999px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <Sparkles size={12} color={prod.accentColor} /> Click to expand
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Carousel Bottom Dot Indicators */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginTop: '18px',
+          }}
+        >
+          {BASELABS_PRODUCTS.map((prod, dotIdx) => (
+            <button
+              key={dotIdx}
+              onClick={() => scrollToCard(dotIdx)}
+              aria-label={`Go to ${prod.name}`}
+              style={{
+                width: dotIdx === activeIdx ? '28px' : '8px',
+                height: '6px',
+                borderRadius: '4px',
+                backgroundColor: dotIdx === activeIdx ? prod.accentColor : 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                padding: 0,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Product Detail Deep-Dive Modal */}
-      {detailModalProduct && (
+      {/* Deep-Dive Glassmorphism Modal */}
+      {detailProduct && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 100,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(6px)',
+            backgroundColor: 'rgba(3, 6, 15, 0.82)',
+            backdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '20px',
           }}
-          onClick={() => setDetailModalProduct(null)}
+          onClick={() => setDetailProduct(null)}
         >
           <div
+            className="glass-panel-dark"
             style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              maxWidth: '720px',
+              borderRadius: '24px',
+              maxWidth: '760px',
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
+              padding: '36px',
               position: 'relative',
-              padding: '36px 32px',
+              backgroundColor: '#0b0f1a',
+              border: `1px solid ${detailProduct.accentColor}60`,
+              boxShadow: `0 25px 80px rgba(0, 0, 0, 0.8), 0 0 50px ${detailProduct.glowColor}`,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
+            {/* Modal Close Button */}
             <button
-              onClick={() => setDetailModalProduct(null)}
+              onClick={() => setDetailProduct(null)}
               style={{
                 position: 'absolute',
                 top: '20px',
@@ -563,13 +698,13 @@ export default function BaseLabsSection({ onOpenOrderModal }) {
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                backgroundColor: '#f3f4f6',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: 'none',
                 cursor: 'pointer',
-                color: '#4b5563',
               }}
             >
               <X size={18} />
@@ -579,116 +714,114 @@ export default function BaseLabsSection({ onOpenOrderModal }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
               <div
                 style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '12px',
-                  backgroundColor: detailModalProduct.accentBg,
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '14px',
+                  backgroundColor: `${detailProduct.accentColor}25`,
+                  border: `1px solid ${detailProduct.accentColor}60`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: detailModalProduct.accentColor,
+                  color: detailProduct.accentColor,
                 }}
               >
-                <detailModalProduct.icon size={26} />
+                <detailProduct.icon size={26} />
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#111827', margin: 0 }}>
-                    {detailModalProduct.name}
+                  <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                    {detailProduct.name}
                   </h3>
                   <span
                     style={{
                       fontSize: '11px',
                       fontWeight: 700,
-                      color: detailModalProduct.accentColor,
-                      backgroundColor: detailModalProduct.accentBg,
+                      color: detailProduct.accentColor,
+                      backgroundColor: `${detailProduct.accentColor}20`,
                       padding: '3px 8px',
                       borderRadius: '6px',
-                      textTransform: 'uppercase',
+                      border: `1px solid ${detailProduct.accentColor}40`,
                     }}
                   >
-                    {detailModalProduct.badge}
+                    {detailProduct.badge}
                   </span>
                 </div>
-                <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0' }}>
-                  {detailModalProduct.subtitle}
+                <p style={{ fontSize: '13px', color: '#94a3b8', margin: '4px 0 0' }}>
+                  {detailProduct.tagline}
                 </p>
               </div>
             </div>
 
-            {/* Modal Image */}
+            {/* Modal Screenshot */}
             <div
               style={{
-                borderRadius: '12px',
+                borderRadius: '14px',
                 overflow: 'hidden',
-                border: '1px solid #e5e7eb',
-                marginBottom: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                marginBottom: '22px',
+                backgroundColor: '#04060c',
               }}
             >
               <img
-                src={detailModalProduct.image}
-                alt={detailModalProduct.name}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
+                src={detailProduct.image}
+                alt={detailProduct.name}
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '340px', objectFit: 'cover' }}
               />
             </div>
 
-            {/* Summary */}
-            <div style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', color: '#111827', marginBottom: '8px' }}>
-                Executive Overview
-              </h4>
-              <p style={{ fontSize: '15px', color: '#4b5563', lineHeight: 1.6 }}>
-                {detailModalProduct.shortDescription}
-              </p>
-            </div>
+            {/* Overview */}
+            <p style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '22px' }}>
+              {detailProduct.shortPitch}
+            </p>
 
             {/* Technical Highlights */}
-            <div style={{ marginBottom: '28px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', color: '#111827', marginBottom: '12px' }}>
-                Technical & Architectural Advantages
+            <div style={{ marginBottom: '26px' }}>
+              <h4 style={{ fontSize: '12.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: detailProduct.accentColor, marginBottom: '12px' }}>
+                Technical Architecture & Intelligence
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {detailModalProduct.technicalHighlights.map((tech, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: '#374151' }}>
-                    <Code2 size={16} color={detailModalProduct.accentColor} style={{ flexShrink: 0, marginTop: '2px' }} />
+                {detailProduct.technicalHighlights.map((tech, tIdx) => (
+                  <div key={tIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13.5px', color: '#94a3b8' }}>
+                    <Code2 size={16} color={detailProduct.accentColor} style={{ flexShrink: 0, marginTop: '2px' }} />
                     <span>{tech}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Footer Buttons with Link */}
+            {/* Footer */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 paddingTop: '20px',
-                borderTop: '1px solid #e5e7eb',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                 flexWrap: 'wrap',
                 gap: '12px',
               }}
             >
-              <span style={{ fontSize: '13px', color: '#6b7280' }}>
-                Part of the <strong>Chipinn Technologies</strong> Software Portfolio
+              <span style={{ fontSize: '12.5px', color: '#64748b' }}>
+                BaseLabs · Rethink Possibilities
               </span>
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <a
-                  href={detailModalProduct.websiteUrl}
+                  href={detailProduct.websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '10px 22px',
+                    padding: '10px 20px',
                     borderRadius: '8px',
-                    backgroundColor: detailModalProduct.accentColor,
+                    backgroundColor: detailProduct.accentColor,
                     color: '#ffffff',
                     fontWeight: 700,
                     fontSize: '13px',
                     textDecoration: 'none',
+                    boxShadow: `0 3px 14px ${detailProduct.accentColor}60`,
                   }}
                 >
                   <span>Launch Official Portal</span>
@@ -696,13 +829,13 @@ export default function BaseLabsSection({ onOpenOrderModal }) {
                 </a>
 
                 <button
-                  onClick={() => setDetailModalProduct(null)}
+                  onClick={() => setDetailProduct(null)}
                   style={{
                     padding: '10px 18px',
                     borderRadius: '8px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151',
-                    border: 'none',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     fontWeight: 600,
                     fontSize: '13px',
                     cursor: 'pointer',
