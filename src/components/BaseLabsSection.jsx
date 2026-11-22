@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   School, 
   BookOpen, 
@@ -108,6 +108,7 @@ export const BASELABS_PRODUCTS = [
 export default function BaseLabsSection({ onOpenOrderModal }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [detailProduct, setDetailProduct] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef(null);
 
   const scrollToCard = (index) => {
@@ -116,10 +117,33 @@ export default function BaseLabsSection({ onOpenOrderModal }) {
       const container = scrollContainerRef.current;
       const card = container.children[index];
       if (card) {
-        card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        const targetLeft = card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2;
+        container.scrollTo({ left: targetLeft, behavior: 'smooth' });
       }
     }
   };
+
+  // 3-Second Auto-Scroll Interval with Hover & Touch Pause
+  useEffect(() => {
+    if (isPaused || detailProduct !== null) return;
+
+    const interval = setInterval(() => {
+      setActiveIdx((prevIdx) => {
+        const nextIdx = (prevIdx + 1) % BASELABS_PRODUCTS.length;
+        if (scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const card = container.children[nextIdx];
+          if (card) {
+            const targetLeft = card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2;
+            container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+          }
+        }
+        return nextIdx;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, detailProduct]);
 
   const handlePrev = () => {
     const nextIdx = (activeIdx - 1 + BASELABS_PRODUCTS.length) % BASELABS_PRODUCTS.length;
@@ -145,6 +169,10 @@ export default function BaseLabsSection({ onOpenOrderModal }) {
   return (
     <section
       id="baselabs"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
       style={{
         position: 'relative',
         padding: '64px 20px 72px',
