@@ -15,6 +15,8 @@ import {
   orderBy, 
   doc, 
   updateDoc, 
+  addDoc,
+  deleteDoc,
   serverTimestamp 
 } from 'firebase/firestore';
 import {
@@ -60,102 +62,42 @@ import {
 
 const API_BASE = 'http://127.0.0.1:8000';
 
-// Rich, realistic initial data for Chipinn Technologies Ltd.
-const INITIAL_OVERVIEW = {
-  income_total_ghc: 1875.0,
-  expense_total_ghc: 2120.0,
-  net_profit_ghc: -245.0,
-  accounts_ghc: { momo: 1755.0, bank: -1850.0, petty_cash: -150.0 },
-  total_cash_ghc: 1875.0,
-  total_outstanding_ghc: 2500.0,
-  total_meters_ordered: 4,
-  low_stock_alerts: 0,
-  active_team_count: 4,
-  recent_activity: [
-    { id: 5, date: '2026-11-14', amount_ghc: 150.0, type: 'expense', category: 'delivery_fuel', account: 'petty_cash', description: 'Site inspection and delivery fuel', party: 'Shell Spintex' },
-    { id: 4, date: '2026-11-14', amount_ghc: 1850.0, type: 'expense', category: 'cogs_parts', account: 'bank', description: 'Batch 1 Enclosure Casing & Relays', party: 'Precision Moldings Ghana' },
-    { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', party: 'Kofi Boateng (Tech)' },
-    { id: 2, date: '2026-11-14', amount_ghc: 625.0, type: 'income', category: 'deposit', account: 'momo', description: '50% pre-order deposit for Spintex compound', party: 'Mrs. Akua Frimpong' },
-    { id: 1, date: '2026-11-14', amount_ghc: 1250.0, type: 'income', category: 'meter_sale', account: 'momo', description: 'Full payment for Unity Meter #001 (East Legon)', party: 'Kwesi Mensah' }
-  ]
-};
+// Purge any residual mock/dummy data from previous local test sessions
+if (typeof window !== 'undefined') {
+  try {
+    const keysToCheck = [
+      'chipinn_ops_overview',
+      'chipinn_ops_finances',
+      'chipinn_ops_employees',
+      'chipinn_ops_inventory',
+      'chipinn_ops_clients',
+      'chipinn_ops_milestones',
+      'chipinn_ops_docs'
+    ];
+    keysToCheck.forEach((key) => {
+      const val = localStorage.getItem(key);
+      if (
+        val &&
+        (val.includes('Kwesi Mensah') ||
+          val.includes('Shell Spintex') ||
+          val.includes('Kofi Boateng') ||
+          val.includes('Precision Moldings') ||
+          val.includes('Akua Frimpong') ||
+          val.includes('Nii Armah Tagoe') ||
+          val.includes('1875'))
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch {}
+}
 
-const INITIAL_FINANCES = [
-  { id: 5, date: '2026-11-14', amount_ghc: 150.0, type: 'expense', category: 'delivery_fuel', account: 'petty_cash', description: 'Site inspection and delivery fuel', reference: 'CASH-PETTY-01', party: 'Shell Spintex' },
-  { id: 4, date: '2026-11-14', amount_ghc: 1850.0, type: 'expense', category: 'cogs_parts', account: 'bank', description: 'Batch 1 Enclosure Casing & Relays', reference: 'STANBIC-TRX-441', party: 'Precision Moldings Ghana' },
-  { id: 3, date: '2026-11-14', amount_ghc: 120.0, type: 'expense', category: 'technician_payout', account: 'momo', description: 'Installation commission for Unit #001', reference: 'MTN-94813001', party: 'Kofi Boateng (Tech)' },
-  { id: 2, date: '2026-11-14', amount_ghc: 625.0, type: 'income', category: 'deposit', account: 'momo', description: '50% pre-order deposit for Spintex compound', reference: 'MTN-94811048', party: 'Mrs. Akua Frimpong' },
-  { id: 1, date: '2026-11-14', amount_ghc: 1250.0, type: 'income', category: 'meter_sale', account: 'momo', description: 'Full payment for Unity Meter #001 (East Legon)', reference: 'MTN-94810294', party: 'Kwesi Mensah' }
-];
-
-const INITIAL_EMPLOYEES = [
-  { id: 1, name: 'Kofi Boateng', role: 'Lead Electrical Engineer', department: 'Engineering & Hardware', phone: '+233 24 551 2341', momo_number: '0245512341', ghana_card: 'GHA-712894102-1', zone: 'Accra Central & Spintex', employment_type: 'Full-time', base_salary_ghc: 4500, commission_per_meter_ghc: 120, meters_installed_count: 8, status: 'Active' },
-  { id: 2, name: 'Emmanuel Osei', role: 'Field Operations Specialist', department: 'Field Operations', phone: '+233 50 119 8472', momo_number: '0501198472', ghana_card: 'GHA-820194829-3', zone: 'Tema & Kpone', employment_type: 'Full-time', base_salary_ghc: 3200, commission_per_meter_ghc: 120, meters_installed_count: 4, status: 'Active' },
-  { id: 3, name: 'Derrick Addo', role: 'Hardware Assembly & QA Tech', department: 'Assembly & QA', phone: '+233 27 492 0182', momo_number: '0274920182', ghana_card: 'GHA-910293810-4', zone: 'Lab Assembly', employment_type: 'Full-time', base_salary_ghc: 2500, commission_per_meter_ghc: 20, meters_installed_count: 12, status: 'Active' },
-  { id: 4, name: 'Sarah Lamptey', role: 'Customer Operations & Logistics', department: 'Customer Sales & Ops', phone: '+233 20 839 1049', momo_number: '0208391049', ghana_card: 'GHA-510294819-2', zone: 'Head Office / Remote', employment_type: 'Full-time', base_salary_ghc: 2800, commission_per_meter_ghc: 50, meters_installed_count: 0, status: 'Active' }
-];
-
-const INITIAL_INVENTORY = [
-  { id: 1, item_name: 'Unity Meter 3-in-1 (Assembled)', category: 'finished_product', quantity: 18, unit: 'units', unit_cost_ghc: 580.0, min_threshold: 5, location: 'Main Lab Shelf A' },
-  { id: 2, item_name: 'Fire-Retardant Wall Enclosure Box', category: 'casing_hardware', quantity: 45, unit: 'pcs', unit_cost_ghc: 65.0, min_threshold: 15, location: 'Bin 01' },
-  { id: 3, item_name: 'STS 100A Bi-Directional Relays', category: 'electronic_component', quantity: 60, unit: 'pcs', unit_cost_ghc: 45.0, min_threshold: 20, location: 'Electronics Shelf 2' },
-  { id: 4, item_name: 'Split-Core 100A Current Transformers', category: 'electronic_component', quantity: 72, unit: 'pcs', unit_cost_ghc: 38.0, min_threshold: 25, location: 'Electronics Shelf 1' },
-  { id: 5, item_name: 'ESP32 IoT & GSM Dual-Band Module', category: 'electronic_component', quantity: 34, unit: 'pcs', unit_cost_ghc: 75.0, min_threshold: 10, location: 'Secure Locker' },
-  { id: 6, item_name: 'Fluke True-RMS Clamp Meter & Probe Kit', category: 'tool', quantity: 3, unit: 'sets', unit_cost_ghc: 1200.0, min_threshold: 1, location: 'Tool Rack' }
-];
-
-const INITIAL_CLIENTS = [
-  { id: 1, name: 'Kwesi Mensah', phone: '+233 24 410 9283', alt_phone: '+233 20 192 8374', location: 'East Legon (near American House)', ghana_post_gps: 'GA-194-2819', property_type: 'Compound House (3 Tenants)', meters_ordered: 1, meter_serials: 'CP-UM-1001', total_amount_ghc: 1250.0, amount_paid_ghc: 1250.0, balance_due_ghc: 0.0, status: 'Installed & Tested', assigned_installer_name: 'Kofi Boateng', notes: 'Landlord thrilled with single 3-channel billing.' },
-  { id: 2, name: 'Mrs. Akua Frimpong', phone: '+233 50 829 1029', alt_phone: '', location: 'Spintex (Kotobabi Junction)', ghana_post_gps: 'GZ-029-4810', property_type: 'Rental Apartments (6 units)', meters_ordered: 2, meter_serials: 'CP-UM-1002, CP-UM-1003', total_amount_ghc: 2500.0, amount_paid_ghc: 1250.0, balance_due_ghc: 1250.0, status: 'Deposit Received', assigned_installer_name: 'Kofi Boateng', notes: 'Installation scheduled for Saturday 10am.' },
-  { id: 3, name: 'Dr. Nii Armah Tagoe', phone: '+233 24 382 9102', alt_phone: '', location: 'Dansoman (Keep Fit Club)', ghana_post_gps: 'GA-582-1948', property_type: 'Storefront & Residential', meters_ordered: 1, meter_serials: 'Pending Allocation', total_amount_ghc: 1250.0, amount_paid_ghc: 0.0, balance_due_ghc: 1250.0, status: 'New Inquiry', assigned_installer_name: '', notes: 'Requested site inspection before committing.' }
-];
-
-const INITIAL_MILESTONES = [
-  { id: 1, stage: 'Stage 01', title: 'Deploy First 1,000 Unity Meters', description: 'Expand across Greater Accra, Tema, and Kumasi to replace compound 3-meter clutter.', progress_percent: 25, target_date: 'Q2 2027', status: 'In Progress' },
-  { id: 2, stage: 'Stage 02', title: 'Prototype Chipinn Sense Appliance Monitor', description: 'Non-intrusive high-frequency load disaggregation to eliminate phantom residential loads.', progress_percent: 15, target_date: 'Q3 2027', status: 'In Progress' },
-  { id: 3, stage: 'Stage 03', title: 'GridGuard Utility Anti-Theft Substation Pilot', description: 'Hardware bypass detection system to return utility grid distribution to profitability.', progress_percent: 0, target_date: 'Q1 2028', status: 'Upcoming' },
-  { id: 4, stage: 'Stage 04', title: 'Distributed Clean Solar Generation', description: 'Mass distributed solar microgrids dropping cost of electricity below GH₵1.00 / kWh.', progress_percent: 0, target_date: 'Q4 2028', status: 'Upcoming' }
-];
-
-const INITIAL_DOCS = [
-  {
-    id: 1,
-    title: 'Unity Meter 3-in-1 Hardware Architecture & STS Protocol',
-    category: 'hardware_spec',
-    author: 'Lead Hardware Architect',
-    summary: 'Complete electrical specification of the 3-channel sub-metering chassis.',
-    content: `### Architecture Overview
-The Unity Meter integrates three galvanically isolated sub-metering channels into a single UV-stabilized, fire-retardant wall-mounted enclosure.
-
-- **Microcontroller**: Dual-core ESP32 with hardware cryptographic engine for 20-digit STS token verification.
-- **Current Sensing**: 3x 100A split-core current transformers (Class 0.5 accuracy).
-- **Switching**: 3x 100A bi-directional latching magnetic relays.
-- **Communications**: Dual-band GSM/GPRS + 2.4GHz WiFi telemetry fallback.`,
-    tags: 'STS, Hardware, Relays, ESP32, Ghana Standards'
-  },
-  {
-    id: 2,
-    title: 'Energy Commission of Ghana & GSA Regulatory Compliance',
-    category: 'regulatory_compliance',
-    author: 'Legal & Compliance Lead',
-    summary: 'Compliance roadmap for sub-metering deployment under PURC & Energy Commission rules.',
-    content: `### Regulatory Framework
-- Conforms to **IEC 62053-21** (Electricity metering equipment for active energy classes 1 and 2).
-- Complies with **IEC 62055-41** (Standard Transfer Specification for prepayment systems).
-- Sub-metering complies with PURC tenant billing guidelines: tenants are billed strictly at approved utility tariffs with zero landlord markup.`,
-    tags: 'Regulatory, PURC, Energy Commission, IEC'
-  },
-  {
-    id: 3,
-    title: 'Research: Non-Intrusive Load Monitoring (NILM) for Ghanaian Households',
-    category: 'research_whitepaper',
-    author: 'AI & GridPulse Research',
-    summary: 'Algorithm research for disaggregating refrigeration, deep freezers, and air conditioners from single-point current telemetry.',
-    content: `### Objective
-Eliminate phantom load wastage in Ghanaian homes (estimated at 20% to 30% of average monthly electricity consumption) using high-frequency edge FFT analysis on current harmonics.`,
-    tags: 'NILM, Machine Learning, Phantom Load, Energy Efficiency'
-  }
-];
+const INITIAL_FINANCES = [];
+const INITIAL_EMPLOYEES = [];
+const INITIAL_INVENTORY = [];
+const INITIAL_CLIENTS = [];
+const INITIAL_MILESTONES = [];
+const INITIAL_DOCS = [];
 
 export default function OpsDashboard({ onExit }) {
   // Firebase Authentication State
@@ -192,20 +134,11 @@ export default function OpsDashboard({ onExit }) {
   const [financeAccountFilter, setFinanceAccountFilter] = useState('all');
   const [financeTypeFilter, setFinanceTypeFilter] = useState('all');
 
-  // Persistent Data States
-  const [overview, setOverview] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_overview');
-      return saved ? JSON.parse(saved) : INITIAL_OVERVIEW;
-    } catch {
-      return INITIAL_OVERVIEW;
-    }
-  });
-
+  // Persistent Data States - Real Data Only
   const [finances, setFinances] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_finances');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_FINANCES;
+      return saved ? JSON.parse(saved) : INITIAL_FINANCES;
     } catch {
       return INITIAL_FINANCES;
     }
@@ -214,7 +147,7 @@ export default function OpsDashboard({ onExit }) {
   const [employees, setEmployees] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_employees');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_EMPLOYEES;
+      return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
     } catch {
       return INITIAL_EMPLOYEES;
     }
@@ -223,7 +156,7 @@ export default function OpsDashboard({ onExit }) {
   const [inventory, setInventory] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_inventory');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_INVENTORY;
+      return saved ? JSON.parse(saved) : INITIAL_INVENTORY;
     } catch {
       return INITIAL_INVENTORY;
     }
@@ -232,7 +165,7 @@ export default function OpsDashboard({ onExit }) {
   const [clients, setClients] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_clients');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_CLIENTS;
+      return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
     } catch {
       return INITIAL_CLIENTS;
     }
@@ -241,7 +174,7 @@ export default function OpsDashboard({ onExit }) {
   const [milestones, setMilestones] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_milestones');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_MILESTONES;
+      return saved ? JSON.parse(saved) : INITIAL_MILESTONES;
     } catch {
       return INITIAL_MILESTONES;
     }
@@ -250,11 +183,78 @@ export default function OpsDashboard({ onExit }) {
   const [docs, setDocs] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_docs');
-      return (saved && JSON.parse(saved).length > 0) ? JSON.parse(saved) : INITIAL_DOCS;
+      return saved ? JSON.parse(saved) : INITIAL_DOCS;
     } catch {
       return INITIAL_DOCS;
     }
   });
+
+  // Dynamic live computed overview from real business records
+  const overview = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    const accounts = { momo: 0, bank: 0, petty_cash: 0 };
+
+    finances.forEach((f) => {
+      const amt = Number(f.amount_ghc) || 0;
+      if (f.type === 'income') {
+        income += amt;
+        if (accounts[f.account] !== undefined) accounts[f.account] += amt;
+      } else if (f.type === 'expense') {
+        expense += amt;
+        if (accounts[f.account] !== undefined) accounts[f.account] -= amt;
+      }
+    });
+
+    let totalMeters = 0;
+    let totalOutstanding = 0;
+    clients.forEach((c) => {
+      totalMeters += Number(c.meters_ordered) || 0;
+      totalOutstanding += Number(c.balance_due_ghc) || 0;
+    });
+
+    const lowStock = inventory.filter((i) => Number(i.quantity) <= (Number(i.min_threshold) || 0)).length;
+    const activeTeam = employees.filter((e) => e.status === 'Active' || !e.status).length;
+    const netProfit = income - expense;
+    const totalCash = accounts.momo + accounts.bank + accounts.petty_cash;
+
+    // Recent activity stream from real finances and live customer orders
+    const recentActivity = [
+      ...finances.map((f) => ({
+        id: `f-${f.id}`,
+        date: f.date || new Date().toISOString().slice(0, 10),
+        amount_ghc: Number(f.amount_ghc) || 0,
+        type: f.type,
+        category: f.category || 'entry',
+        account: f.account || 'momo',
+        description: f.description || 'Transaction',
+        party: f.party || f.reference || ''
+      })),
+      ...clients.map((c) => ({
+        id: `c-${c.id}`,
+        date: c.created_at ? c.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        amount_ghc: Number(c.total_amount_ghc) || 0,
+        type: 'income',
+        category: 'order',
+        account: 'momo',
+        description: `${c.meters_ordered}x Unity Meter Order (${c.property_type || 'Residential'})`,
+        party: c.name
+      }))
+    ].slice(0, 8);
+
+    return {
+      income_total_ghc: income,
+      expense_total_ghc: expense,
+      net_profit_ghc: netProfit,
+      accounts_ghc: accounts,
+      total_cash_ghc: totalCash,
+      total_outstanding_ghc: totalOutstanding,
+      total_meters_ordered: totalMeters,
+      low_stock_alerts: lowStock,
+      active_team_count: activeTeam,
+      recent_activity: recentActivity
+    };
+  }, [finances, clients, inventory, employees]);
 
   // Modal Type: 'finance' | 'employee' | 'inventory' | 'client' | 'milestone' | 'doc'
   const [modalType, setModalType] = useState(null);
@@ -392,124 +392,138 @@ export default function OpsDashboard({ onExit }) {
     notify('Console session closed');
   };
 
-  // Fetch live data from FastAPI
-  const fetchAllData = async () => {
+  // Real-time Cloud Firestore synchronization across all screens
+  useEffect(() => {
     if (!token) return;
     setIsLoading(true);
 
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+    // 1. Orders / Clients
+    const unsubOrders = onSnapshot(
+      query(collection(db, 'orders'), orderBy('createdAt', 'desc')),
+      (snapshot) => {
+        const liveOrders = snapshot.docs.map((dDoc) => {
+          const d = dDoc.data();
+          const amt = Number(d.amount) || 0;
+          const paid = d.status === 'Paid' || d.status === 'Installed & Tested' ? amt : Number(d.amount_paid_ghc) || 0;
+          const balance = d.status === 'Paid' || d.status === 'Installed & Tested' ? 0 : Math.max(0, amt - paid);
+          return {
+            id: dDoc.id,
+            name: d.fullName || 'Web Order',
+            phone: d.phone || '',
+            email: d.email || '',
+            location: d.location || 'Accra, Ghana',
+            ghana_post_gps: d.ghanaPostGps || '',
+            property_type: d.propertyType || 'Residential',
+            meters_ordered: parseInt(d.units, 10) || 1,
+            status: d.status || 'Pending Review',
+            total_amount_ghc: amt,
+            amount_paid_ghc: paid,
+            balance_due_ghc: balance,
+            assigned_installer_name: d.assignedInstaller || 'Unassigned (Web Lead)',
+            meter_serials: d.meterSerials || 'Pending Allocation',
+            notes: d.notes || d.useCase || '',
+            is_live_firestore: true,
+            created_at: d.clientCreatedAt || (d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : new Date().toISOString())
+          };
+        });
+        setClients(liveOrders);
+        try { localStorage.setItem('chipinn_ops_clients', JSON.stringify(liveOrders)); } catch {}
+      },
+      (err) => console.warn('Orders listener:', err.message)
+    );
+
+    // 2. Financial Transactions
+    const unsubFinances = onSnapshot(
+      collection(db, 'ops_finances'),
+      (snapshot) => {
+        const liveFinances = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        })).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        setFinances(liveFinances);
+        try { localStorage.setItem('chipinn_ops_finances', JSON.stringify(liveFinances)); } catch {}
+      },
+      (err) => console.warn('Finances listener:', err.message)
+    );
+
+    // 3. Employees
+    const unsubEmployees = onSnapshot(
+      collection(db, 'ops_employees'),
+      (snapshot) => {
+        const liveEmployees = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        }));
+        setEmployees(liveEmployees);
+        try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(liveEmployees)); } catch {}
+      },
+      (err) => console.warn('Employees listener:', err.message)
+    );
+
+    // 4. Inventory
+    const unsubInventory = onSnapshot(
+      collection(db, 'ops_inventory'),
+      (snapshot) => {
+        const liveInventory = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        }));
+        setInventory(liveInventory);
+        try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(liveInventory)); } catch {}
+      },
+      (err) => console.warn('Inventory listener:', err.message)
+    );
+
+    // 5. Milestones
+    const unsubMilestones = onSnapshot(
+      collection(db, 'ops_milestones'),
+      (snapshot) => {
+        const liveMilestones = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        }));
+        setMilestones(liveMilestones);
+        try { localStorage.setItem('chipinn_ops_milestones', JSON.stringify(liveMilestones)); } catch {}
+      },
+      (err) => console.warn('Milestones listener:', err.message)
+    );
+
+    // 6. Docs
+    const unsubDocs = onSnapshot(
+      collection(db, 'ops_docs'),
+      (snapshot) => {
+        const liveDocs = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        }));
+        setDocs(liveDocs);
+        try { localStorage.setItem('chipinn_ops_docs', JSON.stringify(liveDocs)); } catch {}
+        setIsLoading(false);
+      },
+      (err) => {
+        console.warn('Docs listener:', err.message);
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      unsubOrders();
+      unsubFinances();
+      unsubEmployees();
+      unsubInventory();
+      unsubMilestones();
+      unsubDocs();
     };
+  }, [token]);
 
-    try {
-      const [resOverview, resFin, resEmp, resInv, resCli, resMil, resDoc, resNotif] = await Promise.all([
-        fetch(`${API_BASE}/api/ops/overview`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/finances`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/employees`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/inventory`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/clients`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/milestones`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/docs`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`${API_BASE}/api/ops/notifications`, { headers }).then(r => r.ok ? r.json() : null).catch(() => null)
-      ]);
-
-      if (resOverview) {
-        setOverview(resOverview);
-        localStorage.setItem('chipinn_ops_overview', JSON.stringify(resOverview));
-      }
-      if (resFin && resFin.length > 0) {
-        setFinances(resFin);
-        localStorage.setItem('chipinn_ops_finances', JSON.stringify(resFin));
-      }
-      if (resEmp && resEmp.length > 0) {
-        setEmployees(resEmp);
-        localStorage.setItem('chipinn_ops_employees', JSON.stringify(resEmp));
-      }
-      if (resInv && resInv.length > 0) {
-        setInventory(resInv);
-        localStorage.setItem('chipinn_ops_inventory', JSON.stringify(resInv));
-      }
-      if (resCli && resCli.length > 0) {
-        setClients(resCli);
-        localStorage.setItem('chipinn_ops_clients', JSON.stringify(resCli));
-      }
-      if (resMil && resMil.length > 0) {
-        setMilestones(resMil);
-        localStorage.setItem('chipinn_ops_milestones', JSON.stringify(resMil));
-      }
-      if (resDoc && resDoc.length > 0) {
-        setDocs(resDoc);
-        localStorage.setItem('chipinn_ops_docs', JSON.stringify(resDoc));
-      }
-      if (resNotif && resNotif.length > 0) {
-        const unread = resNotif.find(n => n.is_read === 0);
-        if (unread) {
-          setNewOrderAlert({ title: unread.title, message: unread.message, timestamp: Date.now() });
-        }
-      }
-      notify('Live data synchronized');
-    } catch {
-      notify('Using local cached records');
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchAllData = () => {
+    // Live updates handled by Cloud Firestore listeners
   };
-
-  useEffect(() => {
-    if (token) {
-      fetchAllData();
-    }
-  }, [token]);
-
-  // Real-time Firestore sync for incoming web customer orders
-  useEffect(() => {
-    if (!token) return;
-    try {
-      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const liveOrders = snapshot.docs.map((dDoc) => {
-            const d = dDoc.data();
-            return {
-              id: dDoc.id,
-              name: d.fullName || 'Web Order',
-              phone: d.phone || '',
-              email: d.email || '',
-              location: d.location || 'Accra, Ghana',
-              ghana_post_gps: d.ghanaPostGps || '',
-              property_type: d.propertyType || 'Residential',
-              meters_ordered: parseInt(d.units, 10) || 1,
-              status: d.status || 'Pending Review',
-              total_amount_ghc: Number(d.amount) || 0,
-              amount_paid_ghc: d.status === 'Paid' || d.status === 'Installed & Tested' ? (Number(d.amount) || 0) : 0,
-              balance_due_ghc: d.status === 'Paid' || d.status === 'Installed & Tested' ? 0 : (Number(d.amount) || 0),
-              assigned_installer_name: d.assignedInstaller || 'Unassigned (Web Lead)',
-              meter_serials: d.meterSerials || 'Pending Allocation',
-              notes: d.notes || d.useCase || '',
-              is_live_firestore: true,
-              created_at: d.clientCreatedAt || (d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : new Date().toISOString())
-            };
-          });
-
-          setClients((prev) => {
-            const existingIds = new Set(liveOrders.map((o) => o.id));
-            const remaining = prev.filter((p) => !existingIds.has(p.id));
-            const merged = [...liveOrders, ...remaining];
-            try {
-              localStorage.setItem('chipinn_ops_clients', JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
-        }
-      }, (err) => {
-        console.warn('Firestore orders sync:', err.message);
-      });
-      return () => unsubscribe();
-    } catch (e) {
-      console.warn('Firestore orders listener error:', e);
-    }
-  }, [token]);
 
   // Filtered Financial Log
   const filteredFinances = useMemo(() => {
@@ -1392,35 +1406,43 @@ export default function OpsDashboard({ onExit }) {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {overview.recent_activity.map((act) => (
-                      <div
-                        key={act.id}
-                        style={{
-                          padding: '14px 16px',
-                          backgroundColor: '#f8fafc',
-                          borderRadius: '12px',
-                          border: '1px solid #f1f5f9',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{act.description}</div>
-                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                            {act.date} • {act.party || act.category} • <span style={{ textTransform: 'uppercase', fontWeight: 600 }}>{act.account}</span>
+                    {overview.recent_activity && overview.recent_activity.length > 0 ? (
+                      overview.recent_activity.map((act) => (
+                        <div
+                          key={act.id}
+                          style={{
+                            padding: '14px 16px',
+                            backgroundColor: '#f8fafc',
+                            borderRadius: '12px',
+                            border: '1px solid #f1f5f9',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{act.description}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                              {act.date} • {act.party || act.category} • <span style={{ textTransform: 'uppercase', fontWeight: 600 }}>{act.account}</span>
+                            </div>
+                          </div>
+
+                          <div style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: act.type === 'income' ? '#16a34a' : '#0f172a'
+                          }}>
+                            {act.type === 'income' ? '+' : '-'} GH₵ {Number(act.amount_ghc).toLocaleString()}
                           </div>
                         </div>
-
-                        <div style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          color: act.type === 'income' ? '#16a34a' : '#0f172a'
-                        }}>
-                          {act.type === 'income' ? '+' : '-'} GH₵ {act.amount_ghc.toLocaleString()}
-                        </div>
+                      ))
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '36px 20px', color: '#94a3b8' }}>
+                        <Clock size={32} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
+                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#475569', margin: 0 }}>No recent activity recorded</p>
+                        <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>Customer orders and financial transactions will appear here live in real time.</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -1598,82 +1620,95 @@ export default function OpsDashboard({ onExit }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredFinances.map((f) => (
-                      <tr
-                        key={f.id}
-                        style={{
-                          borderBottom: '1px solid #f1f5f9',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <td style={{ padding: '16px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                          {f.date}
-                        </td>
-                        <td style={{ padding: '16px', fontWeight: 600, color: '#0f172a' }}>
-                          {f.description}
-                        </td>
-                        <td style={{ padding: '16px', color: '#475467' }}>
-                          {f.party || '—'}
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <span style={{
-                            padding: '4px 10px',
-                            borderRadius: '9999px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            backgroundColor: '#f1f5f9',
-                            color: '#334155'
-                          }}>
-                            {f.category.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <span style={{
-                            padding: '4px 10px',
-                            borderRadius: '9999px',
-                            fontSize: '11px',
+                    {filteredFinances.length > 0 ? (
+                      filteredFinances.map((f) => (
+                        <tr
+                          key={f.id}
+                          style={{
+                            borderBottom: '1px solid #f1f5f9',
+                            transition: 'background-color 0.15s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <td style={{ padding: '16px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                            {f.date}
+                          </td>
+                          <td style={{ padding: '16px', fontWeight: 600, color: '#0f172a' }}>
+                            {f.description}
+                          </td>
+                          <td style={{ padding: '16px', color: '#475467' }}>
+                            {f.party || '—'}
+                          </td>
+                          <td style={{ padding: '16px' }}>
+                            <span style={{
+                              padding: '4px 10px',
+                              borderRadius: '9999px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              backgroundColor: '#f1f5f9',
+                              color: '#334155'
+                            }}>
+                              {(f.category || 'entry').replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px' }}>
+                            <span style={{
+                              padding: '4px 10px',
+                              borderRadius: '9999px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              backgroundColor: f.account === 'momo' ? '#fef9c3' : f.account === 'bank' ? '#e0f2fe' : '#ecfdf5',
+                              color: f.account === 'momo' ? '#a16207' : f.account === 'bank' ? '#0369a1' : '#047857'
+                            }}>
+                              {f.account}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px', fontFamily: 'monospace', fontSize: '12px', color: '#64748b' }}>
+                            {f.reference || '—'}
+                          </td>
+                          <td style={{
+                            padding: '16px',
+                            textAlign: 'right',
                             fontWeight: 700,
-                            textTransform: 'uppercase',
-                            backgroundColor: f.account === 'momo' ? '#fef9c3' : f.account === 'bank' ? '#e0f2fe' : '#ecfdf5',
-                            color: f.account === 'momo' ? '#a16207' : f.account === 'bank' ? '#0369a1' : '#047857'
+                            fontSize: '14px',
+                            color: f.type === 'income' ? '#16a34a' : '#0f172a'
                           }}>
-                            {f.account}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px', fontFamily: 'monospace', fontSize: '12px', color: '#64748b' }}>
-                          {f.reference || '—'}
-                        </td>
-                        <td style={{
-                          padding: '16px',
-                          textAlign: 'right',
-                          fontWeight: 700,
-                          fontSize: '14px',
-                          color: f.type === 'income' ? '#16a34a' : '#0f172a'
-                        }}>
-                          {f.type === 'income' ? '+' : '-'} GH₵ {f.amount_ghc.toLocaleString()}
-                        </td>
-                        <td style={{ padding: '16px', textAlign: 'center' }}>
-                          <button
-                            onClick={async () => {
-                              if (window.confirm('Delete this financial entry?')) {
-                                setFinances(finances.filter(item => item.id !== f.id));
-                                await fetch(`${API_BASE}/api/ops/finances/${f.id}`, {
-                                  method: 'DELETE',
-                                  headers: { 'Authorization': `Bearer ${token}` }
-                                }).catch(() => null);
-                                notify('Entry removed');
-                              }
-                            }}
-                            title="Delete entry"
-                            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                            {f.type === 'income' ? '+' : '-'} GH₵ {Number(f.amount_ghc).toLocaleString()}
+                          </td>
+                          <td style={{ padding: '16px', textAlign: 'center' }}>
+                            <button
+                              onClick={async () => {
+                                if (window.confirm('Delete this financial entry?')) {
+                                  const updated = finances.filter(item => item.id !== f.id);
+                                  setFinances(updated);
+                                  try { localStorage.setItem('chipinn_ops_finances', JSON.stringify(updated)); } catch {}
+                                  try {
+                                    await deleteDoc(doc(db, 'ops_finances', f.id.toString()));
+                                  } catch (e) {
+                                    console.warn('Delete finance:', e);
+                                  }
+                                  notify('Entry removed');
+                                }
+                              }}
+                              title="Delete entry"
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={8} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                          <Wallet size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+                          <p style={{ fontSize: '15px', fontWeight: 600, color: '#334155', margin: 0 }}>No financial entries recorded yet</p>
+                          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>Click "Record Entry" above to log real customer payments or expenses.</p>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1733,138 +1768,184 @@ export default function OpsDashboard({ onExit }) {
 
               {/* Cards Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-                {employees.map((emp) => (
-                  <div
-                    key={emp.id}
-                    style={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      padding: '24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          width: '44px',
-                          height: '44px',
-                          borderRadius: '9999px',
-                          backgroundColor: '#0f172a',
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '14px'
-                        }}>
-                          {emp.name.split(' ').map(n => n[0]).join('')}
+                {employees.length > 0 ? (
+                  employees.map((emp) => (
+                    <div
+                      key={emp.id}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#0f172a',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '14px'
+                          }}>
+                            {(emp.name || 'Team').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </div>
+                          <div>
+                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{emp.name}</h3>
+                            <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>{emp.role}</div>
+                          </div>
                         </div>
-                        <div>
-                          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{emp.name}</h3>
-                          <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600 }}>{emp.role}</div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '9999px',
+                            backgroundColor: emp.status === 'Active' ? '#ecfdf5' : '#f1f5f9',
+                            color: emp.status === 'Active' ? '#059669' : '#64748b',
+                            fontWeight: 600
+                          }}>
+                            {emp.status || 'Active'}
+                          </span>
+                          <button
+                            onClick={async () => {
+                              if (window.confirm(`Remove employee ${emp.name}?`)) {
+                                const updated = employees.filter(e => e.id !== emp.id);
+                                setEmployees(updated);
+                                try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(updated)); } catch {}
+                                try { await deleteDoc(doc(db, 'ops_employees', emp.id.toString())); } catch {}
+                                notify(`Removed ${emp.name}`);
+                              }
+                            }}
+                            title="Remove employee"
+                            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </div>
                       </div>
 
-                      <span style={{
-                        fontSize: '11px',
-                        padding: '3px 8px',
-                        borderRadius: '9999px',
-                        backgroundColor: emp.status === 'Active' ? '#ecfdf5' : '#f1f5f9',
-                        color: emp.status === 'Active' ? '#059669' : '#64748b',
-                        fontWeight: 600
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Phone size={13} color="#94a3b8" />
+                          <span>{emp.phone || 'No phone'}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={13} color="#94a3b8" />
+                          <span>Department: {emp.department || emp.zone || 'Operations'}</span>
+                        </div>
+                        {emp.ghana_card && (
+                          <div>
+                            Ghana Card: <code style={{ color: '#0f172a', fontWeight: 600 }}>{emp.ghana_card}</code>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Compensation & Commission Box */}
+                      <div style={{
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '14px',
+                        padding: '14px 16px',
+                        border: '1px solid #f1f5f9',
+                        marginBottom: '16px'
                       }}>
-                        {emp.status}
-                      </span>
-                    </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                          <span style={{ color: '#64748b' }}>Base Monthly Salary:</span>
+                          <strong style={{ color: '#0f172a' }}>GH₵ {(Number(emp.base_salary_ghc) || 0).toLocaleString()}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                          <span style={{ color: '#64748b' }}>Performance / Commission:</span>
+                          <strong style={{ color: '#16a34a', fontSize: '13px' }}>
+                            GH₵ {((Number(emp.meters_installed_count) || 0) * (Number(emp.commission_per_meter_ghc) || 0)).toLocaleString()}
+                          </strong>
+                        </div>
+                      </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '18px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={13} color="#94a3b8" />
-                        <span>{emp.phone}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MapPin size={13} color="#94a3b8" />
-                        <span>Department: {emp.department || emp.zone || 'Operations'}</span>
-                      </div>
-                      <div>
-                        Ghana Card: <code style={{ color: '#0f172a', fontWeight: 600 }}>{emp.ghana_card || 'Verified'}</code>
+                      {/* Action Pills */}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={async () => {
+                            const newCount = (Number(emp.meters_installed_count) || 0) + 1;
+                            const updated = employees.map(item =>
+                              item.id === emp.id ? { ...item, meters_installed_count: newCount } : item
+                            );
+                            setEmployees(updated);
+                            try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(updated)); } catch {}
+                            try {
+                              await updateDoc(doc(db, 'ops_employees', emp.id.toString()), {
+                                meters_installed_count: newCount
+                              });
+                            } catch (e) {
+                              console.warn('Update employee:', e);
+                            }
+                            notify(`Recorded +1 completed unit for ${emp.name}`);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '10px 14px',
+                            backgroundColor: '#0f172a',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '9999px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + 1 Unit Handled
+                        </button>
+
+                        {emp.phone && (
+                          <a
+                            href={`https://wa.me/${emp.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '10px 14px',
+                              backgroundColor: '#ecfdf5',
+                              color: '#059669',
+                              borderRadius: '9999px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              textDecoration: 'none',
+                              fontSize: '12px',
+                              fontWeight: 600
+                            }}
+                          >
+                            <Send size={13} />
+                            <span>WhatsApp</span>
+                          </a>
+                        )}
                       </div>
                     </div>
-
-                    {/* Compensation & Commission Box */}
-                    <div style={{
-                      backgroundColor: '#f8fafc',
-                      borderRadius: '14px',
-                      padding: '14px 16px',
-                      border: '1px solid #f1f5f9',
-                      marginBottom: '16px'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                        <span style={{ color: '#64748b' }}>Base Monthly Salary:</span>
-                        <strong style={{ color: '#0f172a' }}>GH₵ {emp.base_salary_ghc.toLocaleString()}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ color: '#64748b' }}>Performance / Commission:</span>
-                        <strong style={{ color: '#16a34a', fontSize: '13px' }}>
-                          GH₵ {(emp.meters_installed_count * emp.commission_per_meter_ghc).toLocaleString()}
-                        </strong>
-                      </div>
-                    </div>
-
-                    {/* Action Pills */}
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={async () => {
-                          const updated = employees.map(item =>
-                            item.id === emp.id ? { ...item, meters_installed_count: item.meters_installed_count + 1 } : item
-                          );
-                          setEmployees(updated);
-                          localStorage.setItem('chipinn_ops_employees', JSON.stringify(updated));
-                          await fetch(`${API_BASE}/api/ops/employees/${emp.id}/record-install`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                          }).catch(() => null);
-                          notify(`Recorded +1 completed unit for ${emp.name}`);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '10px 14px',
-                          backgroundColor: '#0f172a',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '9999px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        + 1 Unit Handled
-                      </button>
-
-                      <a
-                        href={`https://wa.me/${emp.phone.replace(/[^0-9]/g, '')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          padding: '10px 14px',
-                          backgroundColor: '#ecfdf5',
-                          color: '#059669',
-                          borderRadius: '9999px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          textDecoration: 'none',
-                          fontSize: '12px',
-                          fontWeight: 600
-                        }}
-                      >
-                        <Send size={13} />
-                        <span>WhatsApp</span>
-                      </a>
-                    </div>
+                  ))
+                ) : (
+                  <div style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '20px',
+                    border: '1px dashed #cbd5e1'
+                  }}>
+                    <Users size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>No Team Members Registered</h3>
+                    <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '420px', margin: '0 auto 18px' }}>
+                      Add your electrical engineers, field installers, assembly techs, and sales staff to manage roles and commissions.
+                    </p>
+                    <button onClick={() => setModalType('employee')} style={primaryPillBtnStyle}>
+                      <Plus size={15} />
+                      <span>Add First Team Member</span>
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -1904,90 +1985,130 @@ export default function OpsDashboard({ onExit }) {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                {inventory.map((item) => {
-                  const isLow = item.quantity <= item.min_threshold;
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        backgroundColor: '#ffffff',
-                        border: isLow ? '1.5px solid #fecaca' : '1px solid #e2e8f0',
-                        borderRadius: '20px',
-                        padding: '24px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{item.item_name}</h3>
-                        {isLow && (
-                          <span style={{ fontSize: '10px', backgroundColor: '#fef2f2', color: '#b91c1c', padding: '3px 8px', borderRadius: '9999px', fontWeight: 700 }}>
-                            LOW STOCK
-                          </span>
-                        )}
-                      </div>
-
-                      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
-                        Location: {item.location} • Cost: GH₵ {item.unit_cost_ghc}
-                      </div>
-
-                      {/* Stock Stepper Box */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 16px',
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '12px',
-                        marginBottom: '16px'
-                      }}>
-                        <div>
-                          <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>In Stock</div>
-                          <div style={{ fontSize: '22px', fontWeight: 800, color: isLow ? '#dc2626' : '#0f172a' }}>
-                            {item.quantity} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>{item.unit}</span>
+                {inventory.length > 0 ? (
+                  inventory.map((item) => {
+                    const isLow = Number(item.quantity) <= Number(item.min_threshold);
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          border: isLow ? '1.5px solid #fecaca' : '1px solid #e2e8f0',
+                          borderRadius: '20px',
+                          padding: '24px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{item.item_name}</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {isLow && (
+                              <span style={{ fontSize: '10px', backgroundColor: '#fef2f2', color: '#b91c1c', padding: '3px 8px', borderRadius: '9999px', fontWeight: 700 }}>
+                                LOW STOCK
+                              </span>
+                            )}
+                            <button
+                              onClick={async () => {
+                                if (window.confirm(`Delete ${item.item_name}?`)) {
+                                  const updated = inventory.filter(i => i.id !== item.id);
+                                  setInventory(updated);
+                                  try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
+                                  try { await deleteDoc(doc(db, 'ops_inventory', item.id.toString())); } catch {}
+                                  notify(`Deleted ${item.item_name}`);
+                                }
+                              }}
+                              title="Delete stock item"
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            onClick={async () => {
-                              const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: Math.max(0, i.quantity - 1) } : i);
-                              setInventory(updated);
-                              localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated));
-                              await fetch(`${API_BASE}/api/ops/inventory/${item.id}/adjust`, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ delta: -1 })
-                              }).catch(() => null);
-                            }}
-                            style={{ width: '32px', height: '32px', backgroundColor: '#ffffff', border: '1px solid #d0d5dd', color: '#0f172a', borderRadius: '9999px', cursor: 'pointer', fontWeight: 700 }}
-                          >
-                            -
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-                              setInventory(updated);
-                              localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated));
-                              await fetch(`${API_BASE}/api/ops/inventory/${item.id}/adjust`, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ delta: 1 })
-                              }).catch(() => null);
-                            }}
-                            style={{ width: '32px', height: '32px', backgroundColor: '#0f172a', border: 'none', color: '#ffffff', borderRadius: '9999px', cursor: 'pointer', fontWeight: 700 }}
-                          >
-                            +
-                          </button>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>
+                          Location: {item.location || 'Lab'} • Cost: GH₵ {item.unit_cost_ghc || 0}
+                        </div>
+
+                        {/* Stock Stepper Box */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '12px',
+                          marginBottom: '16px'
+                        }}>
+                          <div>
+                            <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>In Stock</div>
+                            <div style={{ fontSize: '22px', fontWeight: 800, color: isLow ? '#dc2626' : '#0f172a' }}>
+                              {item.quantity || 0} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>{item.unit || 'units'}</span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                              onClick={async () => {
+                                const newQty = Math.max(0, (Number(item.quantity) || 0) - 1);
+                                const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: newQty } : i);
+                                setInventory(updated);
+                                try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
+                                try {
+                                  await updateDoc(doc(db, 'ops_inventory', item.id.toString()), { quantity: newQty });
+                                } catch (e) {
+                                  console.warn('Update inventory:', e);
+                                }
+                              }}
+                              style={{ width: '32px', height: '32px', backgroundColor: '#ffffff', border: '1px solid #d0d5dd', color: '#0f172a', borderRadius: '9999px', cursor: 'pointer', fontWeight: 700 }}
+                            >
+                              -
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const newQty = (Number(item.quantity) || 0) + 1;
+                                const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: newQty } : i);
+                                setInventory(updated);
+                                try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
+                                try {
+                                  await updateDoc(doc(db, 'ops_inventory', item.id.toString()), { quantity: newQty });
+                                } catch (e) {
+                                  console.warn('Update inventory:', e);
+                                }
+                              }}
+                              style={{ width: '32px', height: '32px', backgroundColor: '#0f172a', border: 'none', color: '#ffffff', borderRadius: '9999px', cursor: 'pointer', fontWeight: 700 }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Alert at &le; {item.min_threshold || 5} {item.unit || 'units'}</span>
+                          <span>Total Asset: GH₵ {((Number(item.quantity) || 0) * (Number(item.unit_cost_ghc) || 0)).toLocaleString()}</span>
                         </div>
                       </div>
-
-                      <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Alert at &le; {item.min_threshold} {item.unit}</span>
-                        <span>Total Asset: GH₵ {(item.quantity * item.unit_cost_ghc).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '20px',
+                    border: '1px dashed #cbd5e1'
+                  }}>
+                    <Package size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>No Inventory Recorded</h3>
+                    <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '420px', margin: '0 auto 18px' }}>
+                      Add assembled Unity Meters, enclosure casings, relays, current transformers, and installation tools.
+                    </p>
+                    <button onClick={() => setModalType('inventory')} style={primaryPillBtnStyle}>
+                      <Plus size={15} />
+                      <span>Add Stock Part</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2025,156 +2146,173 @@ export default function OpsDashboard({ onExit }) {
                 </button>
               </div>
 
-              {clients.map((cli) => {
-                const hasBalance = cli.balance_due_ghc > 0;
-                return (
-                  <div
-                    key={cli.id}
-                    style={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      padding: '24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{cli.name}</h3>
-                          <span style={{
-                            fontSize: '11px',
-                            padding: '4px 10px',
-                            borderRadius: '9999px',
-                            backgroundColor: cli.status.includes('Paid') ? '#ecfdf5' : '#fef9c3',
-                            color: cli.status.includes('Paid') ? '#059669' : '#a16207',
-                            fontWeight: 700
-                          }}>
-                            {cli.status}
-                          </span>
+              {clients.length > 0 ? (
+                clients.map((cli) => {
+                  const hasBalance = cli.balance_due_ghc > 0;
+                  return (
+                    <div
+                      key={cli.id}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{cli.name}</h3>
+                            <span style={{
+                              fontSize: '11px',
+                              padding: '4px 10px',
+                              borderRadius: '9999px',
+                              backgroundColor: cli.status.includes('Paid') || cli.status.includes('Installed') ? '#ecfdf5' : '#fef9c3',
+                              color: cli.status.includes('Paid') || cli.status.includes('Installed') ? '#059669' : '#a16207',
+                              fontWeight: 700
+                            }}>
+                              {cli.status}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#2563eb', fontWeight: 500, marginTop: '2px' }}>
+                            {cli.property_type} • {cli.meters_ordered} Unity Meter(s)
+                          </div>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#2563eb', fontWeight: 500, marginTop: '2px' }}>
-                          {cli.property_type} • {cli.meters_ordered} Unity Meter(s)
+
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
+                            GH₵ {(Number(cli.total_amount_ghc) || 0).toLocaleString()}
+                          </div>
+                          <div style={{ fontSize: '12px', color: hasBalance ? '#ca8a04' : '#16a34a', fontWeight: 600 }}>
+                            {hasBalance ? `Balance: GH₵ ${Number(cli.balance_due_ghc).toLocaleString()}` : 'Paid in Full ✓'}
+                          </div>
                         </div>
                       </div>
 
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
-                          GH₵ {cli.total_amount_ghc.toLocaleString()}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '13px', color: '#64748b', marginBottom: '18px' }}>
+                        <div>
+                          Location: <strong style={{ color: '#0f172a' }}>{cli.location}</strong>
                         </div>
-                        <div style={{ fontSize: '12px', color: hasBalance ? '#ca8a04' : '#16a34a', fontWeight: 600 }}>
-                          {hasBalance ? `Balance: GH₵ ${cli.balance_due_ghc}` : 'Paid in Full ✓'}
+                        <div>
+                          GPS: <code style={{ color: '#2563eb', fontWeight: 600 }}>{cli.ghana_post_gps || '—'}</code>
+                        </div>
+                        <div>
+                          Installer: <strong style={{ color: '#0f172a' }}>{cli.assigned_installer_name || 'Unassigned'}</strong>
+                        </div>
+                        <div>
+                          Serial: <code style={{ color: '#7c3aed', fontWeight: 600 }}>{cli.meter_serials || 'Pending Allocation'}</code>
                         </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '13px', color: '#64748b', marginBottom: '18px' }}>
-                      <div>
-                        Location: <strong style={{ color: '#0f172a' }}>{cli.location}</strong>
-                      </div>
-                      <div>
-                        GPS: <code style={{ color: '#2563eb', fontWeight: 600 }}>{cli.ghana_post_gps || '—'}</code>
-                      </div>
-                      <div>
-                        Installer: <strong style={{ color: '#0f172a' }}>{cli.assigned_installer_name || 'Unassigned'}</strong>
-                      </div>
-                      <div>
-                        Serial: <code style={{ color: '#7c3aed', fontWeight: 600 }}>{cli.meter_serials || 'Pending Allocation'}</code>
-                      </div>
-                    </div>
+                      {cli.notes && (
+                        <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', marginBottom: '16px', padding: '10px 14px', backgroundColor: '#f8fafc', borderRadius: '10px' }}>
+                          "{cli.notes}"
+                        </div>
+                      )}
 
-                    {cli.notes && (
-                      <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', marginBottom: '16px', padding: '10px 14px', backgroundColor: '#f8fafc', borderRadius: '10px' }}>
-                        "{cli.notes}"
-                      </div>
-                    )}
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {cli.phone && (
+                          <>
+                            <a
+                              href={`tel:${cli.phone}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 14px',
+                                backgroundColor: '#ffffff',
+                                color: '#334155',
+                                border: '1px solid #d0d5dd',
+                                borderRadius: '9999px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                textDecoration: 'none'
+                              }}
+                            >
+                              <Phone size={13} />
+                              <span>{cli.phone}</span>
+                            </a>
 
-                    {/* Actions */}
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <a
-                        href={`tel:${cli.phone}`}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 14px',
-                          backgroundColor: '#ffffff',
-                          color: '#334155',
-                          border: '1px solid #d0d5dd',
-                          borderRadius: '9999px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          textDecoration: 'none'
-                        }}
-                      >
-                        <Phone size={13} />
-                        <span>{cli.phone}</span>
-                      </a>
+                            <a
+                              href={`https://wa.me/${cli.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 16px',
+                                backgroundColor: '#ecfdf5',
+                                color: '#059669',
+                                borderRadius: '9999px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                textDecoration: 'none'
+                              }}
+                            >
+                              <Send size={13} />
+                              <span>WhatsApp Landlord</span>
+                            </a>
+                          </>
+                        )}
 
-                      <a
-                        href={`https://wa.me/${cli.phone.replace(/[^0-9]/g, '')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 16px',
-                          backgroundColor: '#ecfdf5',
-                          color: '#059669',
-                          borderRadius: '9999px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          textDecoration: 'none'
-                        }}
-                      >
-                        <Send size={13} />
-                        <span>WhatsApp Landlord</span>
-                      </a>
-
-                      {cli.status !== 'Installed & Tested' && (
-                        <button
-                          onClick={async () => {
-                            const updated = clients.map(c => c.id === cli.id ? { ...c, status: 'Installed & Tested', amount_paid_ghc: c.total_amount_ghc, balance_due_ghc: 0 } : c);
-                            setClients(updated);
-                            localStorage.setItem('chipinn_ops_clients', JSON.stringify(updated));
-                            if (cli.is_live_firestore) {
+                        {cli.status !== 'Installed & Tested' && (
+                          <button
+                            onClick={async () => {
+                              const updated = clients.map(c => c.id === cli.id ? { ...c, status: 'Installed & Tested', amount_paid_ghc: c.total_amount_ghc, balance_due_ghc: 0 } : c);
+                              setClients(updated);
+                              try { localStorage.setItem('chipinn_ops_clients', JSON.stringify(updated)); } catch {}
                               try {
-                                await updateDoc(doc(db, 'orders', cli.id), {
+                                await updateDoc(doc(db, 'orders', cli.id.toString()), {
                                   status: 'Installed & Tested',
                                   amount_paid_ghc: cli.total_amount_ghc,
+                                  balance_due_ghc: 0,
                                   updatedAt: serverTimestamp()
                                 });
                               } catch (e) {
-                                console.error('Failed to update Firestore order status:', e);
+                                console.warn('Update order status:', e);
                               }
-                            } else {
-                              await fetch(`${API_BASE}/api/ops/clients/${cli.id}/status`, {
-                                method: 'PATCH',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ status: 'Installed & Tested', amount_paid_ghc: cli.total_amount_ghc })
-                              }).catch(() => null);
-                            }
-                            notify(`Marked order for ${cli.name} as Installed & Tested`);
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#0f172a',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '9999px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Mark Installed & Paid
-                        </button>
-                      )}
+                              notify(`Marked order for ${cli.name} as Installed & Tested`);
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#0f172a',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '9999px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Mark Installed & Paid
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px dashed #cbd5e1'
+                }}>
+                  <Building2 size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>No Customer Orders Yet</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '440px', margin: '0 auto 18px' }}>
+                    Customer orders placed via the website Order modal stream directly into this dashboard in real-time. You can also manually register offline field orders.
+                  </p>
+                  <button onClick={() => setModalType('client')} style={primaryPillBtnStyle}>
+                    <Plus size={15} />
+                    <span>Register Landlord Order</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -2243,134 +2381,210 @@ export default function OpsDashboard({ onExit }) {
               {/* Sub-tab 1: Milestones */}
               {docsSubTab === 'milestones' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-                  {milestones.map((m) => (
-                    <div
-                      key={m.id}
-                      style={{
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '20px',
-                        padding: '24px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 10px',
-                          borderRadius: '9999px',
-                          backgroundColor: '#eff6ff',
-                          color: '#2563eb',
-                          textTransform: 'uppercase'
-                        }}>
-                          {m.stage}
-                        </span>
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: m.status === 'Completed' ? '#16a34a' : m.status === 'In Progress' ? '#2563eb' : '#64748b'
-                        }}>
-                          {m.status} • {m.target_date}
-                        </span>
-                      </div>
+                  {milestones.length > 0 ? (
+                    milestones.map((m) => (
+                      <div
+                        key={m.id}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '20px',
+                          padding: '24px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '3px 10px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#eff6ff',
+                            color: '#2563eb',
+                            textTransform: 'uppercase'
+                          }}>
+                            {m.stage}
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: m.status === 'Completed' ? '#16a34a' : m.status === 'In Progress' ? '#2563eb' : '#64748b'
+                            }}>
+                              {m.status} • {m.target_date}
+                            </span>
+                            <button
+                              onClick={async () => {
+                                if (window.confirm(`Delete milestone "${m.title}"?`)) {
+                                  const updated = milestones.filter(item => item.id !== m.id);
+                                  setMilestones(updated);
+                                  try { localStorage.setItem('chipinn_ops_milestones', JSON.stringify(updated)); } catch {}
+                                  try { await deleteDoc(doc(db, 'ops_milestones', m.id.toString())); } catch {}
+                                  notify('Milestone deleted');
+                                }
+                              }}
+                              title="Delete milestone"
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
 
-                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
-                        {m.title}
-                      </h3>
-                      <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
-                        {m.description}
+                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
+                          {m.title}
+                        </h3>
+                        <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '20px' }}>
+                          {m.description}
+                        </p>
+
+                        {/* Progress Bar */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                            <span style={{ color: '#64748b' }}>Execution Progress</span>
+                            <span style={{ color: '#0f172a' }}>{m.progress_percent}%</span>
+                          </div>
+                          <div style={{ height: '8px', backgroundColor: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+                            <div style={{
+                              width: `${m.progress_percent}%`,
+                              height: '100%',
+                              backgroundColor: m.progress_percent > 50 ? '#16a34a' : '#2563eb',
+                              borderRadius: '9999px'
+                            }} />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      textAlign: 'center',
+                      padding: '60px 20px',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '20px',
+                      border: '1px dashed #cbd5e1'
+                    }}>
+                      <Clock size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>No Milestones Defined Yet</h3>
+                      <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '440px', margin: '0 auto 18px' }}>
+                        Set 3-year strategic pillars and engineering milestones for Chipinn Technologies.
                       </p>
-
-                      {/* Progress Bar */}
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
-                          <span style={{ color: '#64748b' }}>Execution Progress</span>
-                          <span style={{ color: '#0f172a' }}>{m.progress_percent}%</span>
-                        </div>
-                        <div style={{ height: '8px', backgroundColor: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: `${m.progress_percent}%`,
-                            height: '100%',
-                            backgroundColor: m.progress_percent > 50 ? '#16a34a' : '#2563eb',
-                            borderRadius: '9999px'
-                          }} />
-                        </div>
-                      </div>
+                      <button onClick={() => setModalType('milestone')} style={primaryPillBtnStyle}>
+                        <Plus size={15} />
+                        <span>Add Strategic Milestone</span>
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
               {/* Sub-tab 2: Docs & Research */}
               {docsSubTab === 'docs' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-                  {docs.map((d) => (
-                    <div
-                      key={d.id}
-                      style={{
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '20px',
-                        padding: '24px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                          <span style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '3px 10px',
-                            borderRadius: '9999px',
-                            backgroundColor: d.category === 'hardware_spec' ? '#eff6ff' : d.category === 'regulatory_compliance' ? '#fefce8' : '#f5f3ff',
-                            color: d.category === 'hardware_spec' ? '#2563eb' : d.category === 'regulatory_compliance' ? '#a16207' : '#7c3aed'
-                          }}>
-                            {d.category.replace('_', ' ')}
-                          </span>
-                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>By {d.author}</span>
+                  {docs.length > 0 ? (
+                    docs.map((d) => (
+                      <div
+                        key={d.id}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '20px',
+                          padding: '24px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '3px 10px',
+                              borderRadius: '9999px',
+                              backgroundColor: d.category === 'hardware_spec' ? '#eff6ff' : d.category === 'regulatory_compliance' ? '#fefce8' : '#f5f3ff',
+                              color: d.category === 'hardware_spec' ? '#2563eb' : d.category === 'regulatory_compliance' ? '#a16207' : '#7c3aed'
+                            }}>
+                              {(d.category || 'spec').replace('_', ' ')}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>By {d.author}</span>
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm(`Delete document "${d.title}"?`)) {
+                                    const updated = docs.filter(item => item.id !== d.id);
+                                    setDocs(updated);
+                                    try { localStorage.setItem('chipinn_ops_docs', JSON.stringify(updated)); } catch {}
+                                    try { await deleteDoc(doc(db, 'ops_docs', d.id.toString())); } catch {}
+                                    notify('Document deleted');
+                                  }
+                                }}
+                                title="Delete document"
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', lineHeight: 1.4 }}>
+                            {d.title}
+                          </h3>
+                          <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '16px' }}>
+                            {d.summary}
+                          </p>
                         </div>
 
-                        <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', lineHeight: 1.4 }}>
-                          {d.title}
-                        </h3>
-                        <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '16px' }}>
-                          {d.summary}
-                        </p>
-                      </div>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '14px' }}>
+                            Tags: <code style={{ color: '#0f172a' }}>{d.tags}</code>
+                          </div>
 
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '14px' }}>
-                          Tags: <code style={{ color: '#0f172a' }}>{d.tags}</code>
+                          <button
+                            onClick={() => setViewingDoc(d)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              backgroundColor: '#f8fafc',
+                              color: '#0f172a',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '9999px',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <Eye size={14} />
+                            <span>View Full Notes & Specs</span>
+                          </button>
                         </div>
-
-                        <button
-                          onClick={() => setViewingDoc(d)}
-                          style={{
-                            width: '100%',
-                            padding: '10px',
-                            backgroundColor: '#f8fafc',
-                            color: '#0f172a',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '9999px',
-                            fontSize: '13px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px'
-                          }}
-                        >
-                          <Eye size={14} />
-                          <span>View Full Notes & Specs</span>
-                        </button>
                       </div>
+                    ))
+                  ) : (
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      textAlign: 'center',
+                      padding: '60px 20px',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '20px',
+                      border: '1px dashed #cbd5e1'
+                    }}>
+                      <ExternalLink size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>No Documentation Published Yet</h3>
+                      <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '440px', margin: '0 auto 18px' }}>
+                        Publish hardware schematics, firmware notes, regulatory submissions, or research whitepapers.
+                      </p>
+                      <button onClick={() => setModalType('doc')} style={primaryPillBtnStyle}>
+                        <Plus size={15} />
+                        <span>Publish Technical Document</span>
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
@@ -2689,16 +2903,16 @@ function FinanceForm({ token, onSuccess }) {
       ...formData,
       amount_ghc: parseFloat(formData.amount_ghc) || 0,
       date: new Date().toISOString().slice(0, 10),
-      id: Date.now()
+      createdAt: serverTimestamp()
     };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/finances`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    } catch {}
-    onSuccess(payload);
+      const docRef = await addDoc(collection(db, 'ops_finances'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write finance fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId });
   };
 
   return (
@@ -2862,19 +3076,21 @@ function EmployeeForm({ token, onSuccess }) {
     e.preventDefault();
     const payload = {
       ...formData,
-      id: Date.now(),
+      base_salary_ghc: parseFloat(formData.base_salary_ghc) || 0,
+      commission_per_meter_ghc: parseFloat(formData.commission_per_meter_ghc) || 0,
       meters_installed_count: 0,
       status: 'Active',
-      employment_type: 'Full-time'
+      employment_type: 'Full-time',
+      createdAt: serverTimestamp()
     };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/employees`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch {}
-    onSuccess(payload);
+      const docRef = await addDoc(collection(db, 'ops_employees'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write employee fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId });
   };
 
   return (
@@ -2932,15 +3148,21 @@ function InventoryForm({ token, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData, id: Date.now() };
+    const payload = {
+      ...formData,
+      quantity: parseInt(formData.quantity) || 0,
+      unit_cost_ghc: parseFloat(formData.unit_cost_ghc) || 0,
+      min_threshold: parseInt(formData.min_threshold) || 5,
+      createdAt: serverTimestamp()
+    };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/inventory`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch {}
-    onSuccess(payload);
+      const docRef = await addDoc(collection(db, 'ops_inventory'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write inventory fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId });
   };
 
   return (
@@ -2986,18 +3208,50 @@ function ClientForm({ token, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      id: Date.now(),
-      balance_due_ghc: Math.max(0, formData.total_amount_ghc - formData.amount_paid_ghc)
+    const meters = parseInt(formData.meters_ordered) || 1;
+    const total = Number(formData.total_amount_ghc) || meters * 1250;
+    const paid = parseFloat(formData.amount_paid_ghc) || 0;
+    const orderData = {
+      fullName: formData.name,
+      phone: formData.phone,
+      location: formData.location,
+      ghanaPostGps: formData.ghana_post_gps,
+      propertyType: formData.property_type,
+      units: meters,
+      amount: total,
+      amount_paid_ghc: paid,
+      balance_due_ghc: Math.max(0, total - paid),
+      status: paid >= total ? 'Installed & Tested' : paid > 0 ? 'Deposit Received' : 'New Inquiry',
+      notes: formData.notes || '',
+      source: 'ops_manual_registration',
+      createdAt: serverTimestamp(),
+      clientCreatedAt: new Date().toISOString()
     };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/clients`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch {}
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write order fallback:', err);
+    }
+    const payload = {
+      id: docId,
+      name: formData.name,
+      phone: formData.phone,
+      location: formData.location,
+      ghana_post_gps: formData.ghana_post_gps,
+      property_type: formData.property_type,
+      meters_ordered: meters,
+      total_amount_ghc: total,
+      amount_paid_ghc: paid,
+      balance_due_ghc: Math.max(0, total - paid),
+      status: paid >= total ? 'Installed & Tested' : paid > 0 ? 'Deposit Received' : 'New Inquiry',
+      assigned_installer_name: 'Unassigned',
+      meter_serials: 'Pending Allocation',
+      notes: formData.notes,
+      is_live_firestore: true,
+      created_at: new Date().toISOString()
+    };
     onSuccess(payload);
   };
 
@@ -3057,15 +3311,19 @@ function MilestoneForm({ token, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData, id: Date.now() };
+    const payload = {
+      ...formData,
+      progress_percent: parseInt(formData.progress_percent) || 0,
+      createdAt: serverTimestamp()
+    };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/milestones`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch {}
-    onSuccess(payload);
+      const docRef = await addDoc(collection(db, 'ops_milestones'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write milestone fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId });
   };
 
   return (
@@ -3117,15 +3375,18 @@ function DocForm({ token, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData, id: Date.now() };
+    const payload = {
+      ...formData,
+      createdAt: serverTimestamp()
+    };
+    let docId = Date.now().toString();
     try {
-      await fetch(`${API_BASE}/api/ops/docs`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-    } catch {}
-    onSuccess(payload);
+      const docRef = await addDoc(collection(db, 'ops_docs'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write doc fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId });
   };
 
   return (
