@@ -73,45 +73,22 @@ const purgeAllLegacyMockData = () => {
       'chipinn_ops_clients',
       'chipinn_ops_milestones',
       'chipinn_ops_docs',
-      'chipinn_new_order_alert'
+      'chipinn_new_order_alert',
+      'chipinn_ops_v6_clean'
     ];
 
-    // One-time master reset for transition to 100% live Firestore
-    if (localStorage.getItem('chipinn_ops_v6_clean') !== 'true') {
-      keysToCheck.forEach((key) => localStorage.removeItem(key));
-      localStorage.setItem('chipinn_ops_v6_clean', 'true');
-    }
-
-    // Explicitly scan and delete any key that contains any legacy mock text
+    // Unconditionally wipe all stale mock keys
     keysToCheck.forEach((key) => {
-      const val = localStorage.getItem(key);
-      if (
-        val &&
-        (val.includes('Unity Meter 3-in-1 (Assembled)') ||
-          val.includes('Fire-Retardant Wall Enclosure Box') ||
-          val.includes('STS 100A Bi-Directional Relays') ||
-          val.includes('Split-Core 100A Current Transformers') ||
-          val.includes('ESP32 IoT & GSM Dual-Band Module') ||
-          val.includes('Fluke True-RMS Clamp Meter') ||
-          val.includes('Hardware Architecture & STS Protocol') ||
-          val.includes('Energy Commission of Ghana') ||
-          val.includes('Non-Intrusive Load Monitoring') ||
-          val.includes('Deploy First 1,000 Unity Meters') ||
-          val.includes('Chipinn Sense Appliance Monitor') ||
-          val.includes('GridGuard Utility Anti-Theft') ||
-          val.includes('Distributed Clean Solar') ||
-          val.includes('Kwesi Mensah') ||
-          val.includes('Shell Spintex') ||
-          val.includes('Kofi Boateng') ||
-          val.includes('Emmanuel Osei') ||
-          val.includes('Precision Moldings') ||
-          val.includes('Akua Frimpong') ||
-          val.includes('Nii Armah Tagoe') ||
-          val.includes('1875'))
-      ) {
-        localStorage.removeItem(key);
-      }
+      try { localStorage.removeItem(key); } catch {}
     });
+
+    // Deep wipe: clear any key prefixed with chipinn_ops_ except auth token
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('chipinn_ops_') && key !== 'chipinn_ops_token') {
+        try { localStorage.removeItem(key); } catch {}
+      }
+    }
   } catch {}
 };
 
@@ -145,14 +122,7 @@ export default function OpsDashboard({ onExit }) {
   const [notification, setNotification] = useState('');
 
   // Unread Web Order Banner State
-  const [newOrderAlert, setNewOrderAlert] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_new_order_alert');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [newOrderAlert, setNewOrderAlert] = useState(null);
 
   // Docs Tab Sub-toggle: 'milestones' | 'docs'
   const [docsSubTab, setDocsSubTab] = useState('milestones');
@@ -163,126 +133,13 @@ export default function OpsDashboard({ onExit }) {
   const [financeAccountFilter, setFinanceAccountFilter] = useState('all');
   const [financeTypeFilter, setFinanceTypeFilter] = useState('all');
 
-  // Persistent Data States - Real Data Only (Guaranteed zero dummy data)
-  const [finances, setFinances] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_finances');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(f => 
-            !f.party?.includes('Shell') && 
-            !f.party?.includes('Precision') && 
-            !f.description?.includes('Site inspection') &&
-            !f.description?.includes('Enclosure Casing')
-          );
-        }
-      }
-      return INITIAL_FINANCES;
-    } catch {
-      return INITIAL_FINANCES;
-    }
-  });
-
-  const [employees, setEmployees] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_employees');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(e => 
-            !e.name?.includes('Kofi Boateng') && 
-            !e.name?.includes('Emmanuel Osei') && 
-            !e.name?.includes('Derrick Addo') && 
-            !e.name?.includes('Sarah Lamptey')
-          );
-        }
-      }
-      return INITIAL_EMPLOYEES;
-    } catch {
-      return INITIAL_EMPLOYEES;
-    }
-  });
-
-  const [inventory, setInventory] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_inventory');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(i => 
-            !i.item_name?.includes('Unity Meter 3-in-1 (Assembled)') && 
-            !i.item_name?.includes('Fire-Retardant Wall Enclosure') && 
-            !i.item_name?.includes('STS 100A') && 
-            !i.item_name?.includes('Split-Core') && 
-            !i.item_name?.includes('ESP32 IoT') && 
-            !i.item_name?.includes('Fluke True-RMS')
-          );
-        }
-      }
-      return INITIAL_INVENTORY;
-    } catch {
-      return INITIAL_INVENTORY;
-    }
-  });
-
-  const [clients, setClients] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_clients');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(c => 
-            !c.name?.includes('Kwesi Mensah') && 
-            !c.name?.includes('Akua Frimpong') && 
-            !c.name?.includes('Nii Armah Tagoe')
-          );
-        }
-      }
-      return INITIAL_CLIENTS;
-    } catch {
-      return INITIAL_CLIENTS;
-    }
-  });
-
-  const [milestones, setMilestones] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_milestones');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(m => 
-            !m.title?.includes('Deploy First 1,000') && 
-            !m.title?.includes('Chipinn Sense') && 
-            !m.title?.includes('GridGuard') && 
-            !m.title?.includes('Distributed Clean Solar')
-          );
-        }
-      }
-      return INITIAL_MILESTONES;
-    } catch {
-      return INITIAL_MILESTONES;
-    }
-  });
-
-  const [docs, setDocs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chipinn_ops_docs');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(d => 
-            !d.title?.includes('Hardware Architecture') && 
-            !d.title?.includes('Energy Commission') && 
-            !d.title?.includes('Non-Intrusive Load Monitoring')
-          );
-        }
-      }
-      return INITIAL_DOCS;
-    } catch {
-      return INITIAL_DOCS;
-    }
-  });
+  // Pure Live Data States - Guaranteed 100% clean (zero dummy data, zero stale storage)
+  const [finances, setFinances] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [milestones, setMilestones] = useState([]);
+  const [docs, setDocs] = useState([]);
 
   // Dynamic live computed overview from real business records
   const overview = useMemo(() => {
@@ -509,86 +366,149 @@ export default function OpsDashboard({ onExit }) {
           };
         });
         setClients(liveOrders);
-        try { localStorage.setItem('chipinn_ops_clients', JSON.stringify(liveOrders)); } catch {}
       },
-      (err) => console.warn('Orders listener:', err.message)
+      (err) => {
+        console.warn('Orders listener:', err.message);
+        setClients([]);
+      }
     );
 
     // 2. Financial Transactions
     const unsubFinances = onSnapshot(
       collection(db, 'ops_finances'),
       (snapshot) => {
-        const liveFinances = snapshot.docs.map((dDoc) => ({
-          id: dDoc.id,
-          ...dDoc.data(),
-          is_live_firestore: true
-        })).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        const liveFinances = snapshot.docs
+          .map((dDoc) => ({
+            id: dDoc.id,
+            ...dDoc.data(),
+            is_live_firestore: true
+          }))
+          .filter((f) => {
+            const party = (f.party || '').toLowerCase();
+            const desc = (f.description || '').toLowerCase();
+            return (
+              !party.includes('shell') &&
+              !party.includes('precision') &&
+              !desc.includes('site inspection') &&
+              !desc.includes('enclosure casing')
+            );
+          })
+          .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         setFinances(liveFinances);
-        try { localStorage.setItem('chipinn_ops_finances', JSON.stringify(liveFinances)); } catch {}
       },
-      (err) => console.warn('Finances listener:', err.message)
+      (err) => {
+        console.warn('Finances listener:', err.message);
+        setFinances([]);
+      }
     );
 
     // 3. Employees
     const unsubEmployees = onSnapshot(
       collection(db, 'ops_employees'),
       (snapshot) => {
-        const liveEmployees = snapshot.docs.map((dDoc) => ({
-          id: dDoc.id,
-          ...dDoc.data(),
-          is_live_firestore: true
-        }));
+        const liveEmployees = snapshot.docs
+          .map((dDoc) => ({
+            id: dDoc.id,
+            ...dDoc.data(),
+            is_live_firestore: true
+          }))
+          .filter((e) => {
+            const name = (e.name || '').toLowerCase();
+            return (
+              !name.includes('kofi boateng') &&
+              !name.includes('emmanuel osei') &&
+              !name.includes('derrick addo') &&
+              !name.includes('sarah lamptey')
+            );
+          });
         setEmployees(liveEmployees);
-        try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(liveEmployees)); } catch {}
       },
-      (err) => console.warn('Employees listener:', err.message)
+      (err) => {
+        console.warn('Employees listener:', err.message);
+        setEmployees([]);
+      }
     );
 
     // 4. Inventory
     const unsubInventory = onSnapshot(
       collection(db, 'ops_inventory'),
       (snapshot) => {
-        const liveInventory = snapshot.docs.map((dDoc) => ({
-          id: dDoc.id,
-          ...dDoc.data(),
-          is_live_firestore: true
-        }));
+        const liveInventory = snapshot.docs
+          .map((dDoc) => ({
+            id: dDoc.id,
+            ...dDoc.data(),
+            is_live_firestore: true
+          }))
+          .filter((i) => {
+            const name = (i.item_name || '').toLowerCase();
+            return (
+              !name.includes('unity meter 3-in-1 (assembled)') &&
+              !name.includes('split-core') &&
+              !name.includes('fire-retardant') &&
+              !name.includes('sts 100a') &&
+              !name.includes('esp32 iot') &&
+              !name.includes('fluke true-rms')
+            );
+          });
         setInventory(liveInventory);
-        try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(liveInventory)); } catch {}
       },
-      (err) => console.warn('Inventory listener:', err.message)
+      (err) => {
+        console.warn('Inventory listener:', err.message);
+        setInventory([]);
+      }
     );
 
     // 5. Milestones
     const unsubMilestones = onSnapshot(
       collection(db, 'ops_milestones'),
       (snapshot) => {
-        const liveMilestones = snapshot.docs.map((dDoc) => ({
-          id: dDoc.id,
-          ...dDoc.data(),
-          is_live_firestore: true
-        }));
+        const liveMilestones = snapshot.docs
+          .map((dDoc) => ({
+            id: dDoc.id,
+            ...dDoc.data(),
+            is_live_firestore: true
+          }))
+          .filter((m) => {
+            const title = (m.title || '').toLowerCase();
+            return (
+              !title.includes('deploy first 1,000') &&
+              !title.includes('chipinn sense') &&
+              !title.includes('gridguard') &&
+              !title.includes('distributed clean solar')
+            );
+          });
         setMilestones(liveMilestones);
-        try { localStorage.setItem('chipinn_ops_milestones', JSON.stringify(liveMilestones)); } catch {}
       },
-      (err) => console.warn('Milestones listener:', err.message)
+      (err) => {
+        console.warn('Milestones listener:', err.message);
+        setMilestones([]);
+      }
     );
 
     // 6. Docs
     const unsubDocs = onSnapshot(
       collection(db, 'ops_docs'),
       (snapshot) => {
-        const liveDocs = snapshot.docs.map((dDoc) => ({
-          id: dDoc.id,
-          ...dDoc.data(),
-          is_live_firestore: true
-        }));
+        const liveDocs = snapshot.docs
+          .map((dDoc) => ({
+            id: dDoc.id,
+            ...dDoc.data(),
+            is_live_firestore: true
+          }))
+          .filter((d) => {
+            const title = (d.title || '').toLowerCase();
+            return (
+              !title.includes('hardware architecture') &&
+              !title.includes('energy commission') &&
+              !title.includes('non-intrusive')
+            );
+          });
         setDocs(liveDocs);
-        try { localStorage.setItem('chipinn_ops_docs', JSON.stringify(liveDocs)); } catch {}
         setIsLoading(false);
       },
       (err) => {
         console.warn('Docs listener:', err.message);
+        setDocs([]);
         setIsLoading(false);
       }
     );
@@ -604,7 +524,8 @@ export default function OpsDashboard({ onExit }) {
   }, [token]);
 
   const fetchAllData = () => {
-    // Live updates handled by Cloud Firestore listeners
+    purgeAllLegacyMockData();
+    notify('Clean live data refreshed from Firestore');
   };
 
   // Filtered Financial Log
@@ -1711,7 +1632,6 @@ export default function OpsDashboard({ onExit }) {
                                 if (window.confirm('Delete this financial entry?')) {
                                   const updated = finances.filter(item => item.id !== f.id);
                                   setFinances(updated);
-                                  try { localStorage.setItem('chipinn_ops_finances', JSON.stringify(updated)); } catch {}
                                   try {
                                     await deleteDoc(doc(db, 'ops_finances', f.id.toString()));
                                   } catch (e) {
@@ -1846,7 +1766,6 @@ export default function OpsDashboard({ onExit }) {
                               if (window.confirm(`Remove employee ${emp.name}?`)) {
                                 const updated = employees.filter(e => e.id !== emp.id);
                                 setEmployees(updated);
-                                try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(updated)); } catch {}
                                 try { await deleteDoc(doc(db, 'ops_employees', emp.id.toString())); } catch {}
                                 notify(`Removed ${emp.name}`);
                               }
@@ -1904,7 +1823,6 @@ export default function OpsDashboard({ onExit }) {
                               item.id === emp.id ? { ...item, meters_installed_count: newCount } : item
                             );
                             setEmployees(updated);
-                            try { localStorage.setItem('chipinn_ops_employees', JSON.stringify(updated)); } catch {}
                             try {
                               await updateDoc(doc(db, 'ops_employees', emp.id.toString()), {
                                 meters_installed_count: newCount
@@ -2040,7 +1958,6 @@ export default function OpsDashboard({ onExit }) {
                                 if (window.confirm(`Delete ${item.item_name}?`)) {
                                   const updated = inventory.filter(i => i.id !== item.id);
                                   setInventory(updated);
-                                  try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
                                   try { await deleteDoc(doc(db, 'ops_inventory', item.id.toString())); } catch {}
                                   notify(`Deleted ${item.item_name}`);
                                 }
@@ -2080,7 +1997,6 @@ export default function OpsDashboard({ onExit }) {
                                 const newQty = Math.max(0, (Number(item.quantity) || 0) - 1);
                                 const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: newQty } : i);
                                 setInventory(updated);
-                                try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
                                 try {
                                   await updateDoc(doc(db, 'ops_inventory', item.id.toString()), { quantity: newQty });
                                 } catch (e) {
@@ -2096,7 +2012,6 @@ export default function OpsDashboard({ onExit }) {
                                 const newQty = (Number(item.quantity) || 0) + 1;
                                 const updated = inventory.map(i => i.id === item.id ? { ...i, quantity: newQty } : i);
                                 setInventory(updated);
-                                try { localStorage.setItem('chipinn_ops_inventory', JSON.stringify(updated)); } catch {}
                                 try {
                                   await updateDoc(doc(db, 'ops_inventory', item.id.toString()), { quantity: newQty });
                                 } catch (e) {
@@ -2291,7 +2206,6 @@ export default function OpsDashboard({ onExit }) {
                             onClick={async () => {
                               const updated = clients.map(c => c.id === cli.id ? { ...c, status: 'Installed & Tested', amount_paid_ghc: c.total_amount_ghc, balance_due_ghc: 0 } : c);
                               setClients(updated);
-                              try { localStorage.setItem('chipinn_ops_clients', JSON.stringify(updated)); } catch {}
                               try {
                                 await updateDoc(doc(db, 'orders', cli.id.toString()), {
                                   status: 'Installed & Tested',
@@ -2446,7 +2360,6 @@ export default function OpsDashboard({ onExit }) {
                                 if (window.confirm(`Delete milestone "${m.title}"?`)) {
                                   const updated = milestones.filter(item => item.id !== m.id);
                                   setMilestones(updated);
-                                  try { localStorage.setItem('chipinn_ops_milestones', JSON.stringify(updated)); } catch {}
                                   try { await deleteDoc(doc(db, 'ops_milestones', m.id.toString())); } catch {}
                                   notify('Milestone deleted');
                                 }
@@ -2543,7 +2456,6 @@ export default function OpsDashboard({ onExit }) {
                                   if (window.confirm(`Delete document "${d.title}"?`)) {
                                     const updated = docs.filter(item => item.id !== d.id);
                                     setDocs(updated);
-                                    try { localStorage.setItem('chipinn_ops_docs', JSON.stringify(updated)); } catch {}
                                     try { await deleteDoc(doc(db, 'ops_docs', d.id.toString())); } catch {}
                                     notify('Document deleted');
                                   }

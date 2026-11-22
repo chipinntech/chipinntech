@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public web order reservations from marketing site
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // All internal operations (finances, employees, inventory, milestones, docs)
+    // require authenticated admin login
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
