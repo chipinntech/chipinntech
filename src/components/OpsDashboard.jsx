@@ -62,7 +62,8 @@ import {
 const API_BASE = 'http://127.0.0.1:8000';
 
 // Purge any residual mock/dummy data from previous local test sessions
-if (typeof window !== 'undefined') {
+const purgeAllLegacyMockData = () => {
+  if (typeof window === 'undefined') return;
   try {
     const keysToCheck = [
       'chipinn_ops_overview',
@@ -71,15 +72,38 @@ if (typeof window !== 'undefined') {
       'chipinn_ops_inventory',
       'chipinn_ops_clients',
       'chipinn_ops_milestones',
-      'chipinn_ops_docs'
+      'chipinn_ops_docs',
+      'chipinn_new_order_alert'
     ];
+
+    // One-time master reset for transition to 100% live Firestore
+    if (localStorage.getItem('chipinn_ops_v6_clean') !== 'true') {
+      keysToCheck.forEach((key) => localStorage.removeItem(key));
+      localStorage.setItem('chipinn_ops_v6_clean', 'true');
+    }
+
+    // Explicitly scan and delete any key that contains any legacy mock text
     keysToCheck.forEach((key) => {
       const val = localStorage.getItem(key);
       if (
         val &&
-        (val.includes('Kwesi Mensah') ||
+        (val.includes('Unity Meter 3-in-1 (Assembled)') ||
+          val.includes('Fire-Retardant Wall Enclosure Box') ||
+          val.includes('STS 100A Bi-Directional Relays') ||
+          val.includes('Split-Core 100A Current Transformers') ||
+          val.includes('ESP32 IoT & GSM Dual-Band Module') ||
+          val.includes('Fluke True-RMS Clamp Meter') ||
+          val.includes('Hardware Architecture & STS Protocol') ||
+          val.includes('Energy Commission of Ghana') ||
+          val.includes('Non-Intrusive Load Monitoring') ||
+          val.includes('Deploy First 1,000 Unity Meters') ||
+          val.includes('Chipinn Sense Appliance Monitor') ||
+          val.includes('GridGuard Utility Anti-Theft') ||
+          val.includes('Distributed Clean Solar') ||
+          val.includes('Kwesi Mensah') ||
           val.includes('Shell Spintex') ||
           val.includes('Kofi Boateng') ||
+          val.includes('Emmanuel Osei') ||
           val.includes('Precision Moldings') ||
           val.includes('Akua Frimpong') ||
           val.includes('Nii Armah Tagoe') ||
@@ -89,7 +113,9 @@ if (typeof window !== 'undefined') {
       }
     });
   } catch {}
-}
+};
+
+purgeAllLegacyMockData();
 
 const INITIAL_FINANCES = [];
 const INITIAL_EMPLOYEES = [];
@@ -99,6 +125,11 @@ const INITIAL_MILESTONES = [];
 const INITIAL_DOCS = [];
 
 export default function OpsDashboard({ onExit }) {
+  // Purge any stale storage immediately on component mount
+  useEffect(() => {
+    purgeAllLegacyMockData();
+  }, []);
+
   // Firebase Authentication State
   const [currentUser, setCurrentUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
@@ -132,11 +163,22 @@ export default function OpsDashboard({ onExit }) {
   const [financeAccountFilter, setFinanceAccountFilter] = useState('all');
   const [financeTypeFilter, setFinanceTypeFilter] = useState('all');
 
-  // Persistent Data States - Real Data Only
+  // Persistent Data States - Real Data Only (Guaranteed zero dummy data)
   const [finances, setFinances] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_finances');
-      return saved ? JSON.parse(saved) : INITIAL_FINANCES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(f => 
+            !f.party?.includes('Shell') && 
+            !f.party?.includes('Precision') && 
+            !f.description?.includes('Site inspection') &&
+            !f.description?.includes('Enclosure Casing')
+          );
+        }
+      }
+      return INITIAL_FINANCES;
     } catch {
       return INITIAL_FINANCES;
     }
@@ -145,7 +187,18 @@ export default function OpsDashboard({ onExit }) {
   const [employees, setEmployees] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_employees');
-      return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(e => 
+            !e.name?.includes('Kofi Boateng') && 
+            !e.name?.includes('Emmanuel Osei') && 
+            !e.name?.includes('Derrick Addo') && 
+            !e.name?.includes('Sarah Lamptey')
+          );
+        }
+      }
+      return INITIAL_EMPLOYEES;
     } catch {
       return INITIAL_EMPLOYEES;
     }
@@ -154,7 +207,20 @@ export default function OpsDashboard({ onExit }) {
   const [inventory, setInventory] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_inventory');
-      return saved ? JSON.parse(saved) : INITIAL_INVENTORY;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(i => 
+            !i.item_name?.includes('Unity Meter 3-in-1 (Assembled)') && 
+            !i.item_name?.includes('Fire-Retardant Wall Enclosure') && 
+            !i.item_name?.includes('STS 100A') && 
+            !i.item_name?.includes('Split-Core') && 
+            !i.item_name?.includes('ESP32 IoT') && 
+            !i.item_name?.includes('Fluke True-RMS')
+          );
+        }
+      }
+      return INITIAL_INVENTORY;
     } catch {
       return INITIAL_INVENTORY;
     }
@@ -163,7 +229,17 @@ export default function OpsDashboard({ onExit }) {
   const [clients, setClients] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_clients');
-      return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(c => 
+            !c.name?.includes('Kwesi Mensah') && 
+            !c.name?.includes('Akua Frimpong') && 
+            !c.name?.includes('Nii Armah Tagoe')
+          );
+        }
+      }
+      return INITIAL_CLIENTS;
     } catch {
       return INITIAL_CLIENTS;
     }
@@ -172,7 +248,18 @@ export default function OpsDashboard({ onExit }) {
   const [milestones, setMilestones] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_milestones');
-      return saved ? JSON.parse(saved) : INITIAL_MILESTONES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(m => 
+            !m.title?.includes('Deploy First 1,000') && 
+            !m.title?.includes('Chipinn Sense') && 
+            !m.title?.includes('GridGuard') && 
+            !m.title?.includes('Distributed Clean Solar')
+          );
+        }
+      }
+      return INITIAL_MILESTONES;
     } catch {
       return INITIAL_MILESTONES;
     }
@@ -181,7 +268,17 @@ export default function OpsDashboard({ onExit }) {
   const [docs, setDocs] = useState(() => {
     try {
       const saved = localStorage.getItem('chipinn_ops_docs');
-      return saved ? JSON.parse(saved) : INITIAL_DOCS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(d => 
+            !d.title?.includes('Hardware Architecture') && 
+            !d.title?.includes('Energy Commission') && 
+            !d.title?.includes('Non-Intrusive Load Monitoring')
+          );
+        }
+      }
+      return INITIAL_DOCS;
     } catch {
       return INITIAL_DOCS;
     }
