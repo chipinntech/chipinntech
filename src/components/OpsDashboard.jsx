@@ -3,9 +3,20 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  doc, 
+  updateDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import {
   LayoutDashboard,
   Wallet,
@@ -347,6 +358,28 @@ export default function OpsDashboard({ onExit }) {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setIsAuthenticating(true);
+    setAuthError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const cred = await signInWithPopup(auth, provider);
+      const idToken = await cred.user.getIdToken();
+      setCurrentUser(cred.user);
+      setToken(idToken);
+      localStorage.setItem('chipinn_ops_token', idToken);
+      notify(`Signed in as ${cred.user.displayName || cred.user.email}`);
+    } catch (err) {
+      console.error('Google Sign-in error:', err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setAuthError(err.message || 'Google Sign-in failed. Please ensure Google provider is enabled in Firebase Console.');
+      }
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -426,6 +459,55 @@ export default function OpsDashboard({ onExit }) {
   useEffect(() => {
     if (token) {
       fetchAllData();
+    }
+  }, [token]);
+
+  // Real-time Firestore sync for incoming web customer orders
+  useEffect(() => {
+    if (!token) return;
+    try {
+      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const liveOrders = snapshot.docs.map((dDoc) => {
+            const d = dDoc.data();
+            return {
+              id: dDoc.id,
+              name: d.fullName || 'Web Order',
+              phone: d.phone || '',
+              email: d.email || '',
+              location: d.location || 'Accra, Ghana',
+              ghana_post_gps: d.ghanaPostGps || '',
+              property_type: d.propertyType || 'Residential',
+              meters_ordered: parseInt(d.units, 10) || 1,
+              status: d.status || 'Pending Review',
+              total_amount_ghc: Number(d.amount) || 0,
+              amount_paid_ghc: d.status === 'Paid' || d.status === 'Installed & Tested' ? (Number(d.amount) || 0) : 0,
+              balance_due_ghc: d.status === 'Paid' || d.status === 'Installed & Tested' ? 0 : (Number(d.amount) || 0),
+              assigned_installer_name: d.assignedInstaller || 'Unassigned (Web Lead)',
+              meter_serials: d.meterSerials || 'Pending Allocation',
+              notes: d.notes || d.useCase || '',
+              is_live_firestore: true,
+              created_at: d.clientCreatedAt || (d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : new Date().toISOString())
+            };
+          });
+
+          setClients((prev) => {
+            const existingIds = new Set(liveOrders.map((o) => o.id));
+            const remaining = prev.filter((p) => !existingIds.has(p.id));
+            const merged = [...liveOrders, ...remaining];
+            try {
+              localStorage.setItem('chipinn_ops_clients', JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      }, (err) => {
+        console.warn('Firestore orders sync:', err.message);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('Firestore orders listener error:', e);
     }
   }, [token]);
 
@@ -535,6 +617,53 @@ export default function OpsDashboard({ onExit }) {
               ? 'Enter your authorized Firebase credentials to access back-office operations.' 
               : 'Create a new admin account with full access to the Ops Console.'}
           </p>
+
+          {/* 1-Click Google Sign In */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isAuthenticating}
+            style={{
+              width: '100%',
+              padding: '12px 18px',
+              backgroundColor: '#ffffff',
+              color: '#1f2937',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: '12px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: isAuthenticating ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s',
+              marginBottom: '20px'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          {/* Divider */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '20px'
+          }}>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+            <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>or email</span>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
+          </div>
 
           {/* Mode Switcher Tabs */}
           <div style={{
@@ -2009,11 +2138,23 @@ export default function OpsDashboard({ onExit }) {
                             const updated = clients.map(c => c.id === cli.id ? { ...c, status: 'Installed & Tested', amount_paid_ghc: c.total_amount_ghc, balance_due_ghc: 0 } : c);
                             setClients(updated);
                             localStorage.setItem('chipinn_ops_clients', JSON.stringify(updated));
-                            await fetch(`${API_BASE}/api/ops/clients/${cli.id}/status`, {
-                              method: 'PATCH',
-                              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: 'Installed & Tested', amount_paid_ghc: cli.total_amount_ghc })
-                            }).catch(() => null);
+                            if (cli.is_live_firestore) {
+                              try {
+                                await updateDoc(doc(db, 'orders', cli.id), {
+                                  status: 'Installed & Tested',
+                                  amount_paid_ghc: cli.total_amount_ghc,
+                                  updatedAt: serverTimestamp()
+                                });
+                              } catch (e) {
+                                console.error('Failed to update Firestore order status:', e);
+                              }
+                            } else {
+                              await fetch(`${API_BASE}/api/ops/clients/${cli.id}/status`, {
+                                method: 'PATCH',
+                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: 'Installed & Tested', amount_paid_ghc: cli.total_amount_ghc })
+                              }).catch(() => null);
+                            }
                             notify(`Marked order for ${cli.name} as Installed & Tested`);
                           }}
                           style={{
