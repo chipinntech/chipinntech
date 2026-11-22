@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -106,7 +105,6 @@ export default function OpsDashboard({ onExit }) {
   const [token, setToken] = useState(() => localStorage.getItem('chipinn_ops_token') || '');
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
@@ -311,21 +309,12 @@ export default function OpsDashboard({ onExit }) {
     }
 
     try {
-      if (authMode === 'register') {
-        const cred = await createUserWithEmailAndPassword(auth, cleanEmail, passwordInput);
-        const idToken = await cred.user.getIdToken();
-        setCurrentUser(cred.user);
-        setToken(idToken);
-        localStorage.setItem('chipinn_ops_token', idToken);
-        notify(`Admin account registered for ${cred.user.email}`);
-      } else {
-        const cred = await signInWithEmailAndPassword(auth, cleanEmail, passwordInput);
-        const idToken = await cred.user.getIdToken();
-        setCurrentUser(cred.user);
-        setToken(idToken);
-        localStorage.setItem('chipinn_ops_token', idToken);
-        notify(`Welcome back, ${cred.user.email}`);
-      }
+      const cred = await signInWithEmailAndPassword(auth, cleanEmail, passwordInput);
+      const idToken = await cred.user.getIdToken();
+      setCurrentUser(cred.user);
+      setToken(idToken);
+      localStorage.setItem('chipinn_ops_token', idToken);
+      notify(`Welcome back, ${cred.user.email}`);
     } catch (err) {
       // Emergency local fallback for offline development
       if (passwordInput === 'chipinn2026') {
@@ -340,15 +329,11 @@ export default function OpsDashboard({ onExit }) {
       console.error('Firebase Auth error:', err);
       let errorMsg = 'Authentication failed. Please check your credentials.';
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-        errorMsg = 'Incorrect email or password. If you haven\'t created an account yet, click "Create Admin Account" below.';
+        errorMsg = 'Incorrect email or password. Please verify your credentials or sign in with Google.';
       } else if (err.code === 'auth/invalid-email') {
         errorMsg = 'Please enter a valid email address.';
-      } else if (err.code === 'auth/weak-password') {
-        errorMsg = 'Password must be at least 6 characters.';
-      } else if (err.code === 'auth/email-already-in-use') {
-        errorMsg = 'An account with this email already exists. Please switch to Sign In.';
       } else if (err.code === 'auth/operation-not-allowed') {
-        errorMsg = 'Email/Password provider is not yet enabled in Firebase Console. Please go to Firebase > Authentication > Sign-in method and enable Email/Password.';
+        errorMsg = 'Email/Password provider is not yet enabled in Firebase Console.';
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -624,12 +609,10 @@ export default function OpsDashboard({ onExit }) {
           </div>
 
           <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em', color: '#0f172a', marginBottom: '8px' }}>
-            {authMode === 'login' ? 'Sign in to Ops Console' : 'Register Admin Account'}
+            Sign in to Ops Console
           </h2>
           <p style={{ fontSize: '14px', color: '#64748b', lineHeight: 1.5, marginBottom: '24px' }}>
-            {authMode === 'login' 
-              ? 'Enter your authorized Firebase credentials to access back-office operations.' 
-              : 'Create a new admin account with full access to the Ops Console.'}
+            Enter your authorized administrator credentials to access back-office operations.
           </p>
 
           {/* 1-Click Google Sign In */}
@@ -679,54 +662,6 @@ export default function OpsDashboard({ onExit }) {
             <div style={{ flex: 1, height: '1px', backgroundColor: '#e2e8f0' }} />
           </div>
 
-          {/* Mode Switcher Tabs */}
-          <div style={{
-            display: 'flex',
-            backgroundColor: '#f1f5f9',
-            padding: '4px',
-            borderRadius: '12px',
-            marginBottom: '24px'
-          }}>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('login'); setAuthError(''); }}
-              style={{
-                flex: 1,
-                padding: '8px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: authMode === 'login' ? '#ffffff' : 'transparent',
-                color: authMode === 'login' ? '#0f172a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '13px',
-                cursor: 'pointer',
-                boxShadow: authMode === 'login' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('register'); setAuthError(''); }}
-              style={{
-                flex: 1,
-                padding: '8px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: authMode === 'register' ? '#ffffff' : 'transparent',
-                color: authMode === 'register' ? '#0f172a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '13px',
-                cursor: 'pointer',
-                boxShadow: authMode === 'register' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              Register Admin
-            </button>
-          </div>
-
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '16px', textAlign: 'left' }}>
               <label style={{
@@ -740,7 +675,7 @@ export default function OpsDashboard({ onExit }) {
               </label>
               <input
                 type="email"
-                placeholder="e.g. silas@chipinntech.com"
+                placeholder="Enter your authorized email"
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 autoFocus
@@ -772,7 +707,7 @@ export default function OpsDashboard({ onExit }) {
               </label>
               <input
                 type="password"
-                placeholder="Enter password (min 6 characters)"
+                placeholder="Enter your password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 required
@@ -828,11 +763,7 @@ export default function OpsDashboard({ onExit }) {
               }}
             >
               <span>
-                {isAuthenticating 
-                  ? 'Authenticating...' 
-                  : authMode === 'login' 
-                  ? 'Sign in to Ops Console' 
-                  : 'Create Admin Account'}
+                {isAuthenticating ? 'Authenticating...' : 'Sign in to Ops Console'}
               </span>
               <ArrowUpRight size={17} />
             </button>
