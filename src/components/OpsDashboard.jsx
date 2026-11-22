@@ -1,4 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { auth } from '../firebase';
 import {
   LayoutDashboard,
   Wallet,
@@ -140,9 +147,13 @@ Eliminate phantom load wastage in Ghanaian homes (estimated at 20% to 30% of ave
 ];
 
 export default function OpsDashboard({ onExit }) {
-  // Authentication State
+  // Firebase Authentication State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [token, setToken] = useState(() => localStorage.getItem('chipinn_ops_token') || '');
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
@@ -247,44 +258,104 @@ export default function OpsDashboard({ onExit }) {
     localStorage.removeItem('chipinn_new_order_alert');
   };
 
-  // Authenticate
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        try {
+          const idToken = await user.getIdToken();
+          setToken(idToken);
+          localStorage.setItem('chipinn_ops_token', idToken);
+        } catch {
+          setToken('firebase_auth_user_' + user.uid);
+        }
+      } else {
+        setCurrentUser(null);
+        if (!localStorage.getItem('chipinn_ops_token')?.startsWith('offline_token_')) {
+          setToken('');
+        }
+      }
+      setAuthChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Authenticate via Firebase
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsAuthenticating(true);
     setAuthError('');
 
+    const cleanEmail = emailInput.trim();
+    if (!cleanEmail) {
+      setAuthError('Please enter your work email address.');
+      setIsAuthenticating(false);
+      return;
+    }
+    if (!passwordInput) {
+      setAuthError('Please enter your password.');
+      setIsAuthenticating(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/ops/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: passwordInput })
-      });
-
-      if (!res.ok) {
-        throw new Error('Incorrect authorization passcode.');
+      if (authMode === 'register') {
+        const cred = await createUserWithEmailAndPassword(auth, cleanEmail, passwordInput);
+        const idToken = await cred.user.getIdToken();
+        setCurrentUser(cred.user);
+        setToken(idToken);
+        localStorage.setItem('chipinn_ops_token', idToken);
+        notify(`Admin account registered for ${cred.user.email}`);
+      } else {
+        const cred = await signInWithEmailAndPassword(auth, cleanEmail, passwordInput);
+        const idToken = await cred.user.getIdToken();
+        setCurrentUser(cred.user);
+        setToken(idToken);
+        localStorage.setItem('chipinn_ops_token', idToken);
+        notify(`Welcome back, ${cred.user.email}`);
       }
-
-      const data = await res.json();
-      localStorage.setItem('chipinn_ops_token', data.token);
-      setToken(data.token);
-      notify('Ops Console authorized successfully');
     } catch (err) {
+      // Emergency local fallback for offline development
       if (passwordInput === 'chipinn2026') {
         const dummyToken = 'offline_token_' + Date.now();
         localStorage.setItem('chipinn_ops_token', dummyToken);
         setToken(dummyToken);
-        notify('Logged in (Local Mode)');
-      } else {
-        setAuthError(err.message || 'Passcode verification failed. Please try again.');
+        notify('Logged in (Local Passcode Mode)');
+        setIsAuthenticating(false);
+        return;
       }
+
+      console.error('Firebase Auth error:', err);
+      let errorMsg = 'Authentication failed. Please check your credentials.';
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        errorMsg = 'Incorrect email or password. If you haven\'t created an account yet, click "Create Admin Account" below.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMsg = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/weak-password') {
+        errorMsg = 'Password must be at least 6 characters.';
+      } else if (err.code === 'auth/email-already-in-use') {
+        errorMsg = 'An account with this email already exists. Please switch to Sign In.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMsg = 'Email/Password provider is not yet enabled in Firebase Console. Please go to Firebase > Authentication > Sign-in method and enable Email/Password.';
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setAuthError(errorMsg);
     } finally {
       setIsAuthenticating(false);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('Sign out:', e);
+    }
     localStorage.removeItem('chipinn_ops_token');
     setToken('');
+    setCurrentUser(null);
     notify('Console session closed');
   };
 
@@ -457,37 +528,119 @@ export default function OpsDashboard({ onExit }) {
           </div>
 
           <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em', color: '#0f172a', marginBottom: '8px' }}>
-            Sign in to Ops Console
+            {authMode === 'login' ? 'Sign in to Ops Console' : 'Register Admin Account'}
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b', lineHeight: 1.5, marginBottom: '32px' }}>
-            Internal business operating system for Ghana operations.
+          <p style={{ fontSize: '14px', color: '#64748b', lineHeight: 1.5, marginBottom: '24px' }}>
+            {authMode === 'login' 
+              ? 'Enter your authorized Firebase credentials to access back-office operations.' 
+              : 'Create a new admin account with full access to the Ops Console.'}
           </p>
 
+          {/* Mode Switcher Tabs */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: '#f1f5f9',
+            padding: '4px',
+            borderRadius: '12px',
+            marginBottom: '24px'
+          }}>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('login'); setAuthError(''); }}
+              style={{
+                flex: 1,
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: authMode === 'login' ? '#ffffff' : 'transparent',
+                color: authMode === 'login' ? '#0f172a' : '#64748b',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: authMode === 'login' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('register'); setAuthError(''); }}
+              style={{
+                flex: 1,
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: authMode === 'register' ? '#ffffff' : 'transparent',
+                color: authMode === 'register' ? '#0f172a' : '#64748b',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: authMode === 'register' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              Register Admin
+            </button>
+          </div>
+
           <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                marginBottom: '6px'
+              }}>
+                Work Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="e.g. silas@chipinntech.com"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                autoFocus
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  backgroundColor: '#f8fafc',
+                  border: authError ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  color: '#0f172a',
+                  fontSize: '14px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
             <div style={{ marginBottom: '20px', textAlign: 'left' }}>
               <label style={{
                 display: 'block',
                 fontSize: '12px',
                 fontWeight: 600,
                 color: '#334155',
-                marginBottom: '8px'
+                marginBottom: '6px'
               }}>
-                Authorization Passcode
+                Password
               </label>
               <input
                 type="password"
-                placeholder="Enter admin passcode"
+                placeholder="Enter password (min 6 characters)"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                autoFocus
+                required
                 style={{
                   width: '100%',
-                  padding: '14px 18px',
+                  padding: '12px 16px',
                   backgroundColor: '#f8fafc',
                   border: authError ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
-                  borderRadius: '12px',
+                  borderRadius: '10px',
                   color: '#0f172a',
-                  fontSize: '15px',
+                  fontSize: '14px',
                   outline: 'none',
                   transition: 'border-color 0.2s',
                   boxSizing: 'border-box'
@@ -504,7 +657,8 @@ export default function OpsDashboard({ onExit }) {
                 padding: '12px 14px',
                 borderRadius: '10px',
                 marginBottom: '20px',
-                textAlign: 'left'
+                textAlign: 'left',
+                lineHeight: 1.5
               }}>
                 {authError}
               </div>
@@ -515,13 +669,13 @@ export default function OpsDashboard({ onExit }) {
               disabled={isAuthenticating}
               style={{
                 width: '100%',
-                padding: '14px 24px',
+                padding: '13px 24px',
                 backgroundColor: '#0f172a',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '9999px',
                 fontWeight: 600,
-                fontSize: '15px',
+                fontSize: '14.5px',
                 cursor: isAuthenticating ? 'wait' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -530,21 +684,27 @@ export default function OpsDashboard({ onExit }) {
                 boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)'
               }}
             >
-              <span>{isAuthenticating ? 'Verifying...' : 'Unlock Ops Console'}</span>
-              <ArrowUpRight size={18} />
+              <span>
+                {isAuthenticating 
+                  ? 'Authenticating...' 
+                  : authMode === 'login' 
+                  ? 'Sign in to Ops Console' 
+                  : 'Create Admin Account'}
+              </span>
+              <ArrowUpRight size={17} />
             </button>
           </form>
 
           <div style={{
-            marginTop: '32px',
-            paddingTop: '24px',
+            marginTop: '28px',
+            paddingTop: '20px',
             borderTop: '1px solid #f1f5f9',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Default: <code style={{ color: '#0f172a', fontWeight: 600 }}>chipinn2026</code>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+              Firebase Auth · Chipinn Tech
             </span>
             <button
               onClick={onExit}
@@ -731,9 +891,11 @@ export default function OpsDashboard({ onExit }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Admin Operator</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {currentUser?.email ? currentUser.email.split('@')[0] : 'Admin Operator'}
+              </span>
             </div>
-            <span style={{ fontSize: '10px', color: '#94a3b8' }}>Ghana (GMT)</span>
+            <span style={{ fontSize: '10px', color: '#94a3b8' }}>Verified</span>
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
