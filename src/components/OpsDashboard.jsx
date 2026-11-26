@@ -56,7 +56,13 @@ import {
   FileText,
   Target,
   Bell,
-  Eye
+  Eye,
+  Lightbulb,
+  Play,
+  Pause,
+  ListTodo,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 const API_BASE = 'http://127.0.0.1:8000';
@@ -100,6 +106,7 @@ const INITIAL_INVENTORY = [];
 const INITIAL_CLIENTS = [];
 const INITIAL_MILESTONES = [];
 const INITIAL_DOCS = [];
+const INITIAL_IDEAS = [];
 
 export default function OpsDashboard({ onExit }) {
   // Purge any stale storage immediately on component mount
@@ -116,7 +123,7 @@ export default function OpsDashboard({ onExit }) {
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // Active Tab: 'overview' | 'finances' | 'employees' | 'inventory' | 'clients' | 'docs'
+  // Active Tab: 'overview' | 'finances' | 'employees' | 'inventory' | 'clients' | 'docs' | 'ideas'
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState('');
@@ -133,6 +140,12 @@ export default function OpsDashboard({ onExit }) {
   const [financeAccountFilter, setFinanceAccountFilter] = useState('all');
   const [financeTypeFilter, setFinanceTypeFilter] = useState('all');
 
+  // Idea Vault State
+  const [ideaStatusFilter, setIdeaStatusFilter] = useState('all');
+  const [ideaCategoryFilter, setIdeaCategoryFilter] = useState('all');
+  const [ideaSearchQuery, setIdeaSearchQuery] = useState('');
+  const [newChecklistText, setNewChecklistText] = useState({});
+
   // Pure Live Data States - Guaranteed 100% clean (zero dummy data, zero stale storage)
   const [finances, setFinances] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -140,6 +153,7 @@ export default function OpsDashboard({ onExit }) {
   const [clients, setClients] = useState([]);
   const [milestones, setMilestones] = useState([]);
   const [docs, setDocs] = useState([]);
+  const [ideas, setIdeas] = useState([]);
 
   // Dynamic live computed overview from real business records
   const overview = useMemo(() => {
@@ -169,6 +183,8 @@ export default function OpsDashboard({ onExit }) {
     const activeTeam = employees.filter((e) => e.status === 'Active' || !e.status).length;
     const netProfit = income - expense;
     const totalCash = accounts.momo + accounts.bank + accounts.petty_cash;
+    const activeIdeas = ideas.filter((i) => i.status === 'Active').length;
+    const pausedIdeas = ideas.filter((i) => i.status === 'Paused').length;
 
     // Recent activity stream from real finances and live customer orders
     const recentActivity = [
@@ -204,11 +220,13 @@ export default function OpsDashboard({ onExit }) {
       total_meters_ordered: totalMeters,
       low_stock_alerts: lowStock,
       active_team_count: activeTeam,
+      active_ideas_count: activeIdeas,
+      paused_ideas_count: pausedIdeas,
       recent_activity: recentActivity
     };
-  }, [finances, clients, inventory, employees]);
+  }, [finances, clients, inventory, employees, ideas]);
 
-  // Modal Type: 'finance' | 'employee' | 'inventory' | 'client' | 'milestone' | 'doc'
+  // Modal Type: 'finance' | 'employee' | 'inventory' | 'client' | 'milestone' | 'doc' | 'idea'
   const [modalType, setModalType] = useState(null);
 
   const notify = (msg) => {
@@ -513,6 +531,29 @@ export default function OpsDashboard({ onExit }) {
       }
     );
 
+    // 7. Ideas Vault
+    const unsubIdeas = onSnapshot(
+      collection(db, 'ops_ideas'),
+      (snapshot) => {
+        const liveIdeas = snapshot.docs.map((dDoc) => ({
+          id: dDoc.id,
+          ...dDoc.data(),
+          is_live_firestore: true
+        })).sort((a, b) => {
+          const order = { Active: 1, Exploring: 2, Paused: 3, Backlog: 4, Completed: 5 };
+          const aOrder = order[a.status] || 99;
+          const bOrder = order[b.status] || 99;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return (b.created_at || '').localeCompare(a.created_at || '');
+        });
+        setIdeas(liveIdeas);
+      },
+      (err) => {
+        console.warn('Ideas listener:', err.message);
+        setIdeas([]);
+      }
+    );
+
     return () => {
       unsubOrders();
       unsubFinances();
@@ -520,12 +561,140 @@ export default function OpsDashboard({ onExit }) {
       unsubInventory();
       unsubMilestones();
       unsubDocs();
+      unsubIdeas();
     };
   }, [token]);
 
   const fetchAllData = () => {
     purgeAllLegacyMockData();
     notify('Clean live data refreshed from Firestore');
+  };
+
+  // Filtered Ideas Vault
+  const filteredIdeas = useMemo(() => {
+    return ideas.filter((idea) => {
+      const q = ideaSearchQuery.toLowerCase();
+      const matchesSearch =
+        ideaSearchQuery === '' ||
+        (idea.title && idea.title.toLowerCase().includes(q)) ||
+        (idea.description && idea.description.toLowerCase().includes(q)) ||
+        (idea.milestone && idea.milestone.toLowerCase().includes(q)) ||
+        (idea.checklist && idea.checklist.some(t => t.text && t.text.toLowerCase().includes(q)));
+
+      const matchesStatus =
+        ideaStatusFilter === 'all' || idea.status === ideaStatusFilter;
+
+      const matchesCategory =
+        ideaCategoryFilter === 'all' || idea.category === ideaCategoryFilter;
+
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [ideas, ideaSearchQuery, ideaStatusFilter, ideaCategoryFilter]);
+
+  // Idea Vault Action Handlers
+  const handleTogglePauseIdea = async (idea) => {
+    const isCurrentlyPaused = idea.status === 'Paused';
+    const newStatus = isCurrentlyPaused ? 'Active' : 'Paused';
+    const updated = ideas.map((i) =>
+      i.id === idea.id ? { ...i, status: newStatus, updated_at: new Date().toISOString() } : i
+    );
+    setIdeas(updated);
+    notify(isCurrentlyPaused ? `Resumed idea "${idea.title}"` : `Paused idea "${idea.title}"`);
+    try {
+      await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Error toggling pause idea:', e);
+    }
+  };
+
+  const handleUpdateIdeaStatus = async (idea, newStatus) => {
+    const updated = ideas.map((i) =>
+      i.id === idea.id ? { ...i, status: newStatus, updated_at: new Date().toISOString() } : i
+    );
+    setIdeas(updated);
+    notify(`Status set to ${newStatus}`);
+    try {
+      await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Error updating idea status:', e);
+    }
+  };
+
+  const handleToggleTask = async (idea, taskId) => {
+    const updatedChecklist = (idea.checklist || []).map((t) =>
+      t.id === taskId ? { ...t, done: !t.done } : t
+    );
+    const updated = ideas.map((i) =>
+      i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
+    );
+    setIdeas(updated);
+    try {
+      await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
+        checklist: updatedChecklist,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Error updating task:', e);
+    }
+  };
+
+  const handleAddChecklistItem = async (idea, text) => {
+    if (!text || !text.trim()) return;
+    const newTask = {
+      id: Date.now().toString(),
+      text: text.trim(),
+      done: false
+    };
+    const updatedChecklist = [...(idea.checklist || []), newTask];
+    const updated = ideas.map((i) =>
+      i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
+    );
+    setIdeas(updated);
+    setNewChecklistText(prev => ({ ...prev, [idea.id]: '' }));
+    try {
+      await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
+        checklist: updatedChecklist,
+        updated_at: new Date().toISOString()
+      });
+      notify('Task step added');
+    } catch (e) {
+      console.warn('Error adding task item:', e);
+    }
+  };
+
+  const handleDeleteTask = async (idea, taskId) => {
+    const updatedChecklist = (idea.checklist || []).filter((t) => t.id !== taskId);
+    const updated = ideas.map((i) =>
+      i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
+    );
+    setIdeas(updated);
+    try {
+      await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
+        checklist: updatedChecklist,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Error deleting task item:', e);
+    }
+  };
+
+  const handleDeleteIdea = async (idea) => {
+    if (window.confirm(`Delete innovation idea "${idea.title}"?`)) {
+      const updated = ideas.filter((i) => i.id !== idea.id);
+      setIdeas(updated);
+      notify(`Deleted "${idea.title}"`);
+      try {
+        await deleteDoc(doc(db, 'ops_ideas', idea.id.toString()));
+      } catch (e) {
+        console.warn('Error deleting idea:', e);
+      }
+    }
   };
 
   // Filtered Financial Log
@@ -943,6 +1112,13 @@ export default function OpsDashboard({ onExit }) {
             count={docs.length + milestones.length}
             onClick={() => setActiveTab('docs')}
           />
+          <SidebarPill
+            active={activeTab === 'ideas'}
+            icon={<Lightbulb size={18} />}
+            label="Idea Vault"
+            count={ideas.length}
+            onClick={() => setActiveTab('ideas')}
+          />
         </nav>
 
         {/* Live MoMo Business Float Box */}
@@ -1056,6 +1232,7 @@ export default function OpsDashboard({ onExit }) {
                 {activeTab === 'inventory' && 'Hardware Stock & Parts'}
                 {activeTab === 'clients' && 'Landlord Orders & Installations'}
                 {activeTab === 'docs' && 'Documentation & Milestones'}
+                {activeTab === 'ideas' && 'Idea Vault & Innovation Lab'}
               </span>
             </div>
 
@@ -1146,6 +1323,13 @@ export default function OpsDashboard({ onExit }) {
               <button onClick={() => setModalType('finance')} style={primaryPillBtnStyle}>
                 <Plus size={15} />
                 <span>Record Cash Entry</span>
+              </button>
+            )}
+
+            {activeTab === 'ideas' && (
+              <button onClick={() => setModalType('idea')} style={primaryPillBtnStyle}>
+                <Plus size={15} />
+                <span>New Idea</span>
               </button>
             )}
           </div>
@@ -1241,14 +1425,14 @@ export default function OpsDashboard({ onExit }) {
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button onClick={() => setActiveTab('finances')} style={primaryPillBtnStyle}>
                     View Financial Log →
                   </button>
                   <button
                     onClick={() => setActiveTab('employees')}
                     style={{
-                      padding: '10px 20px',
+                      padding: '10px 18px',
                       backgroundColor: '#ffffff',
                       color: '#334155',
                       border: '1px solid #d0d5dd',
@@ -1258,7 +1442,26 @@ export default function OpsDashboard({ onExit }) {
                       cursor: 'pointer'
                     }}
                   >
-                    View Employees ({employees.length})
+                    Employees ({employees.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('ideas')}
+                    style={{
+                      padding: '10px 18px',
+                      backgroundColor: '#ffffff',
+                      color: '#334155',
+                      border: '1px solid #d0d5dd',
+                      borderRadius: '9999px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Lightbulb size={14} color="#f59e0b" />
+                    <span>Idea Vault ({ideas.length})</span>
                   </button>
                 </div>
               </div>
@@ -2531,6 +2734,541 @@ export default function OpsDashboard({ onExit }) {
           )}
 
           {/* =================================================================== */}
+          {/* TAB 7: IDEA VAULT & INNOVATION LAB */}
+          {/* =================================================================== */}
+          {activeTab === 'ideas' && (
+            <div>
+              {/* Header Box */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '20px',
+                padding: '28px 32px',
+                marginBottom: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '20px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ maxWidth: '680px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', backgroundColor: '#fef3c7', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, color: '#b45309', marginBottom: '10px' }}>
+                    <Lightbulb size={13} />
+                    <span>Chipinn R&amp;D &amp; Innovation Pipeline</span>
+                  </div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em', color: '#0f172a', marginBottom: '6px' }}>
+                    Idea Vault &amp; Deliverables Tracker
+                  </h2>
+                  <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+                    Organize, milestone, and execute breakthroughs across hardware, AI software, solar microgrids, and operations. Set checklist deliverables, track completion progress, and pause or resume initiatives anytime.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    backgroundColor: '#f8fafc',
+                    padding: '10px 18px',
+                    borderRadius: '16px',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Total</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{ideas.length}</div>
+                    </div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0' }} />
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', fontWeight: 700 }}>Active</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#059669' }}>
+                        {ideas.filter(i => i.status === 'Active').length}
+                      </div>
+                    </div>
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0' }} />
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#b45309', textTransform: 'uppercase', fontWeight: 700 }}>Paused</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#b45309' }}>
+                        {ideas.filter(i => i.status === 'Paused').length}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button onClick={() => setModalType('idea')} style={primaryPillBtnStyle}>
+                    <Plus size={15} />
+                    <span>New Idea</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Search & Filter Toolbar */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '14px',
+                marginBottom: '24px'
+              }}>
+                {/* Search Bar */}
+                <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    placeholder="Search ideas, milestones, tasks..."
+                    value={ideaSearchQuery}
+                    onChange={(e) => setIdeaSearchQuery(e.target.value)}
+                    style={{
+                      ...cleanInputStyle,
+                      paddingLeft: '38px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#ffffff'
+                    }}
+                  />
+                </div>
+
+                {/* Status Filter Tabs */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {['all', 'Active', 'Paused', 'Exploring', 'Completed'].map((statusKey) => {
+                    const count = statusKey === 'all'
+                      ? ideas.length
+                      : ideas.filter(i => i.status === statusKey).length;
+                    const isSelected = ideaStatusFilter === statusKey;
+                    return (
+                      <button
+                        key={statusKey}
+                        onClick={() => setIdeaStatusFilter(statusKey)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '9999px',
+                          border: isSelected ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                          backgroundColor: isSelected ? '#0f172a' : '#ffffff',
+                          color: isSelected ? '#ffffff' : '#64748b',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        {statusKey === 'Paused' && <Pause size={10} fill={isSelected ? '#ffffff' : '#b45309'} />}
+                        {statusKey === 'Active' && <Play size={10} fill={isSelected ? '#ffffff' : '#059669'} />}
+                        <span>{statusKey === 'all' ? 'All Ideas' : statusKey}</span>
+                        <span style={{
+                          fontSize: '10px',
+                          padding: '1px 6px',
+                          borderRadius: '9999px',
+                          backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : '#f1f5f9',
+                          color: isSelected ? '#ffffff' : '#475569'
+                        }}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Division Filter Dropdown */}
+                <select
+                  value={ideaCategoryFilter}
+                  onChange={(e) => setIdeaCategoryFilter(e.target.value)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '9999px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">All Divisions</option>
+                  <option value="Hardware & Embedded">Hardware & Embedded</option>
+                  <option value="BaseLabs Software & AI">BaseLabs Software & AI</option>
+                  <option value="Solar & Clean Microgrids">Solar & Clean Microgrids</option>
+                  <option value="Operations & Field Tools">Operations & Field Tools</option>
+                  <option value="Moonshot R&D">Moonshot R&D</option>
+                </select>
+              </div>
+
+              {/* Ideas Grid View */}
+              {filteredIdeas.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '22px' }}>
+                  {filteredIdeas.map((idea) => {
+                    const checklist = idea.checklist || [];
+                    const totalTasks = checklist.length;
+                    const completedTasks = checklist.filter(t => t.done).length;
+                    const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                    const isPaused = idea.status === 'Paused';
+                    const isActive = idea.status === 'Active';
+                    const isCompleted = idea.status === 'Completed';
+
+                    return (
+                      <div
+                        key={idea.id}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          border: isPaused
+                            ? '1.5px solid #fed7aa'
+                            : isActive
+                            ? '1px solid #cbd5e1'
+                            : '1px solid #e2e8f0',
+                          borderRadius: '20px',
+                          padding: '24px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          position: 'relative',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div>
+                          {/* Card Top Row: Division Tag, Priority & Status */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '3px 9px',
+                                borderRadius: '9999px',
+                                backgroundColor: idea.category?.includes('Hardware')
+                                  ? '#eff6ff'
+                                  : idea.category?.includes('Software')
+                                  ? '#faf5ff'
+                                  : idea.category?.includes('Solar')
+                                  ? '#fefce8'
+                                  : '#f1f5f9',
+                                color: idea.category?.includes('Hardware')
+                                  ? '#2563eb'
+                                  : idea.category?.includes('Software')
+                                  ? '#7e22ce'
+                                  : idea.category?.includes('Solar')
+                                  ? '#a16207'
+                                  : '#475569'
+                              }}>
+                                {idea.category || 'General'}
+                              </span>
+
+                              {idea.priority && (
+                                <span style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  padding: '2px 7px',
+                                  borderRadius: '6px',
+                                  backgroundColor: idea.priority === 'Moonshot'
+                                    ? '#f3e8ff'
+                                    : idea.priority === 'High'
+                                    ? '#fee2e2'
+                                    : idea.priority === 'Medium'
+                                    ? '#fef3c7'
+                                    : '#f1f5f9',
+                                  color: idea.priority === 'Moonshot'
+                                    ? '#6b21a8'
+                                    : idea.priority === 'High'
+                                    ? '#991b1b'
+                                    : idea.priority === 'Medium'
+                                    ? '#92400e'
+                                    : '#475569'
+                                }}>
+                                  {idea.priority}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Status & Delete */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '3px 10px',
+                                borderRadius: '9999px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                backgroundColor: isPaused
+                                  ? '#fffbeb'
+                                  : isActive
+                                  ? '#ecfdf5'
+                                  : isCompleted
+                                  ? '#f0fdf4'
+                                  : '#eff6ff',
+                                color: isPaused
+                                  ? '#b45309'
+                                  : isActive
+                                  ? '#059669'
+                                  : isCompleted
+                                  ? '#15803d'
+                                  : '#1d4ed8',
+                                border: isPaused ? '1px solid #fde68a' : 'none'
+                              }}>
+                                {isPaused && <Pause size={10} fill="#b45309" />}
+                                {isActive && <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />}
+                                {isCompleted && <Check size={11} />}
+                                <span>{idea.status || 'Active'}</span>
+                              </span>
+
+                              <button
+                                onClick={() => handleDeleteIdea(idea)}
+                                title="Delete Idea"
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '3px' }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Title & Description */}
+                          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', lineHeight: 1.3 }}>
+                            {idea.title}
+                          </h3>
+                          <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, marginBottom: '16px' }}>
+                            {idea.description || 'No description provided.'}
+                          </p>
+
+                          {/* Target Milestone / Stage Banner */}
+                          {idea.milestone && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '7px',
+                              padding: '8px 12px',
+                              backgroundColor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '10px',
+                              marginBottom: '16px',
+                              fontSize: '12px',
+                              color: '#334155'
+                            }}>
+                              <Target size={13} color="#2563eb" style={{ flexShrink: 0 }} />
+                              <span style={{ fontWeight: 600, color: '#1e293b' }}>Milestone:</span>
+                              <span style={{ color: '#475569' }}>{idea.milestone}</span>
+                            </div>
+                          )}
+
+                          {/* Execution Checklist / Deliverables */}
+                          <div style={{
+                            backgroundColor: '#f8fafc',
+                            borderRadius: '14px',
+                            padding: '14px 16px',
+                            border: '1px solid #f1f5f9',
+                            marginBottom: '16px'
+                          }}>
+                            {/* Checklist Header & Progress */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                Deliverables &amp; Tasks
+                              </span>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: progressPercent === 100 ? '#16a34a' : '#2563eb' }}>
+                                {completedTasks}/{totalTasks} done ({progressPercent}%)
+                              </span>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div style={{ height: '6px', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden', marginBottom: '12px' }}>
+                              <div style={{
+                                width: `${progressPercent}%`,
+                                height: '100%',
+                                backgroundColor: progressPercent === 100 ? '#16a34a' : isPaused ? '#f59e0b' : '#2563eb',
+                                borderRadius: '9999px',
+                                transition: 'width 0.2s ease'
+                              }} />
+                            </div>
+
+                            {/* Checklist Items */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                              {checklist.map((task) => (
+                                <div
+                                  key={task.id}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '8px',
+                                    padding: '4px 0'
+                                  }}
+                                >
+                                  <button
+                                    onClick={() => handleToggleTask(idea, task.id)}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px',
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                      flex: 1,
+                                      padding: 0
+                                    }}
+                                  >
+                                    {task.done ? (
+                                      <CheckCircle2 size={15} color="#16a34a" style={{ flexShrink: 0 }} />
+                                    ) : (
+                                      <Clock size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+                                    )}
+                                    <span style={{
+                                      fontSize: '12px',
+                                      color: task.done ? '#94a3b8' : '#1e293b',
+                                      textDecoration: task.done ? 'line-through' : 'none',
+                                      lineHeight: 1.4
+                                    }}>
+                                      {task.text}
+                                    </span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTask(idea, task.id)}
+                                    title="Remove task"
+                                    style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '2px' }}
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Inline Add Task Field */}
+                            <form
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddChecklistItem(idea, newChecklistText[idea.id]);
+                              }}
+                              style={{ display: 'flex', gap: '6px', marginTop: '6px' }}
+                            >
+                              <input
+                                type="text"
+                                placeholder="+ Add deliverable or step..."
+                                value={newChecklistText[idea.id] || ''}
+                                onChange={(e) => setNewChecklistText({ ...newChecklistText, [idea.id]: e.target.value })}
+                                style={{
+                                  flex: 1,
+                                  padding: '6px 10px',
+                                  fontSize: '11px',
+                                  backgroundColor: '#ffffff',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: '6px',
+                                  outline: 'none',
+                                  color: '#0f172a'
+                                }}
+                              />
+                              <button
+                                type="submit"
+                                style={{
+                                  padding: '6px 10px',
+                                  backgroundColor: '#0f172a',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Add
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+
+                        {/* Bottom Action Footer */}
+                        <div style={{
+                          paddingTop: '14px',
+                          borderTop: '1px solid #f1f5f9',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '10px'
+                        }}>
+                          {/* One-Click Pause / Resume Button */}
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              onClick={() => handleTogglePauseIdea(idea)}
+                              style={{
+                                padding: '7px 14px',
+                                backgroundColor: isPaused ? '#ecfdf5' : '#fffbeb',
+                                color: isPaused ? '#059669' : '#b45309',
+                                border: isPaused ? '1px solid #a7f3d0' : '1px solid #fde68a',
+                                borderRadius: '9999px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              {isPaused ? <Play size={12} fill="#059669" /> : <Pause size={12} fill="#b45309" />}
+                              <span>{isPaused ? 'Resume Idea' : 'Pause Idea'}</span>
+                            </button>
+
+                            {/* Status Quick Dropdown */}
+                            <select
+                              value={idea.status || 'Active'}
+                              onChange={(e) => handleUpdateIdeaStatus(idea, e.target.value)}
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '9999px',
+                                border: '1px solid #e2e8f0',
+                                backgroundColor: '#ffffff',
+                                color: '#334155',
+                                cursor: 'pointer',
+                                outline: 'none'
+                              }}
+                            >
+                              <option value="Active">Active</option>
+                              <option value="Paused">Paused</option>
+                              <option value="Exploring">Exploring</option>
+                              <option value="Completed">Completed</option>
+                            </select>
+                          </div>
+
+                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                            Lead: <strong style={{ color: '#475569' }}>{idea.lead || 'Silas'}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Clean Empty State */
+                <div style={{
+                  textAlign: 'center',
+                  padding: '70px 20px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px dashed #cbd5e1'
+                }}>
+                  <Lightbulb size={44} style={{ margin: '0 auto 14px', color: '#f59e0b' }} />
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>
+                    {ideaSearchQuery || ideaStatusFilter !== 'all' || ideaCategoryFilter !== 'all'
+                      ? 'No Matching Ideas Found'
+                      : 'Idea Vault is Empty'}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '460px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+                    {ideaSearchQuery || ideaStatusFilter !== 'all' || ideaCategoryFilter !== 'all'
+                      ? 'Try resetting your search or filter tags to see all recorded innovations.'
+                      : 'Capture breakthroughs across hardware architecture, BaseLabs AI modules, solar grid innovations, and operations. Define milestone steps and pause or resume anytime.'}
+                  </p>
+                  <button onClick={() => setModalType('idea')} style={primaryPillBtnStyle}>
+                    <Plus size={15} />
+                    <span>Record New Idea</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================================== */}
           {/* MODAL DIALOGS */}
           {/* =================================================================== */}
           {modalType && (
@@ -2541,6 +3279,7 @@ export default function OpsDashboard({ onExit }) {
                 modalType === 'inventory' ? 'Add Hardware Stock Part' :
                 modalType === 'milestone' ? 'Add 3-Year Strategic Milestone' :
                 modalType === 'doc' ? 'Publish Technical Document / Research' :
+                modalType === 'idea' ? 'Add Innovation to Idea Vault' :
                 'Register Landlord Order'
               }
               onClose={() => setModalType(null)}
@@ -2608,6 +3347,17 @@ export default function OpsDashboard({ onExit }) {
                     setModalType(null);
                     fetchAllData();
                     notify('Document published');
+                  }}
+                />
+              )}
+              {modalType === 'idea' && (
+                <IdeaForm
+                  token={token}
+                  currentUser={currentUser}
+                  onSuccess={(newIdea) => {
+                    if (newIdea) setIdeas([newIdea, ...ideas]);
+                    setModalType(null);
+                    notify(`Idea "${newIdea.title}" added to Vault`);
                   }}
                 />
               )}
@@ -3360,6 +4110,218 @@ function DocForm({ token, onSuccess }) {
       </div>
       <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '10px' }}>
         Publish Document
+      </button>
+    </form>
+  );
+}
+
+function IdeaForm({ token, currentUser, onSuccess }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    category: 'Hardware & Embedded',
+    priority: 'High',
+    milestone: 'Stage 01 • Pilot 1,000 Units',
+    status: 'Active',
+    lead: currentUser?.displayName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Silas'),
+    description: ''
+  });
+
+  const [initialTasks, setInitialTasks] = useState([
+    { id: '1', text: '' },
+    { id: '2', text: '' }
+  ]);
+
+  const handleTaskChange = (index, val) => {
+    const updated = [...initialTasks];
+    updated[index].text = val;
+    setInitialTasks(updated);
+  };
+
+  const handleAddTaskField = () => {
+    setInitialTasks([...initialTasks, { id: Date.now().toString(), text: '' }]);
+  };
+
+  const handleRemoveTaskField = (index) => {
+    if (initialTasks.length <= 1) return;
+    setInitialTasks(initialTasks.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title.trim()) return;
+
+    const validTasks = initialTasks
+      .filter((t) => t.text.trim())
+      .map((t, idx) => ({
+        id: `${Date.now()}_${idx}`,
+        text: t.text.trim(),
+        done: false
+      }));
+
+    const payload = {
+      ...formData,
+      checklist: validTasks,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      createdAt: serverTimestamp()
+    };
+
+    let docId = Date.now().toString();
+    try {
+      const docRef = await addDoc(collection(db, 'ops_ideas'), payload);
+      docId = docRef.id;
+    } catch (err) {
+      console.warn('Firestore write idea fallback:', err);
+    }
+    onSuccess({ ...payload, id: docId, is_live_firestore: true });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          Idea Title / Innovation Name *
+        </label>
+        <input
+          required
+          type="text"
+          placeholder="e.g. STS Cloud Token Generator with Offline Fallback"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          style={cleanInputStyle}
+        />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            Division / Category
+          </label>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            style={cleanInputStyle}
+          >
+            <option value="Hardware & Embedded">Hardware &amp; Embedded</option>
+            <option value="BaseLabs Software & AI">BaseLabs Software &amp; AI</option>
+            <option value="Solar & Clean Microgrids">Solar &amp; Clean Microgrids</option>
+            <option value="Operations & Field Tools">Operations &amp; Field Tools</option>
+            <option value="Moonshot R&D">Moonshot R&amp;D</option>
+          </select>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            Priority Level
+          </label>
+          <select
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+            style={cleanInputStyle}
+          >
+            <option value="High">High Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="Moonshot">Moonshot / R&amp;D</option>
+            <option value="Low">Low / Long-term</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            Target Milestone / Timeline
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Stage 01 Pilot • Q3 2027"
+            value={formData.milestone}
+            onChange={(e) => setFormData({ ...formData, milestone: e.target.value })}
+            style={cleanInputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+            Initial Status
+          </label>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            style={cleanInputStyle}
+          >
+            <option value="Active">Active (In Development)</option>
+            <option value="Paused">Paused (On Hold)</option>
+            <option value="Exploring">Exploring / Feasibility</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          Problem &amp; Solution Overview
+        </label>
+        <textarea
+          rows={3}
+          placeholder="What problem does this idea solve for landlords, tenants, or the utility grid?"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          style={{ ...cleanInputStyle, resize: 'vertical' }}
+        />
+      </div>
+
+      {/* Initial Things to be Completed / Checklist */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+            Things to be Completed (Milestone Steps)
+          </label>
+          <button
+            type="button"
+            onClick={handleAddTaskField}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#2563eb',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <Plus size={13} />
+            <span>Add Step</span>
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {initialTasks.map((t, idx) => (
+            <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder={idx === 0 ? "e.g. Design 3-channel relay PCB" : "e.g. Deploy pilot firmware"}
+                value={t.text}
+                onChange={(e) => handleTaskChange(idx, e.target.value)}
+                style={{ ...cleanInputStyle, padding: '8px 12px', fontSize: '13px' }}
+              />
+              {initialTasks.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTaskField(idx)}
+                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button type="submit" style={{ ...primaryPillBtnStyle, width: '100%', justifyContent: 'center', marginTop: '12px' }}>
+        Save Idea to Vault
       </button>
     </form>
   );
