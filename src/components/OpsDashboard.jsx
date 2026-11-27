@@ -146,14 +146,49 @@ export default function OpsDashboard({ onExit }) {
   const [ideaSearchQuery, setIdeaSearchQuery] = useState('');
   const [newChecklistText, setNewChecklistText] = useState({});
 
-  // Pure Live Data States - Guaranteed 100% clean (zero dummy data, zero stale storage)
-  const [finances, setFinances] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [milestones, setMilestones] = useState([]);
-  const [docs, setDocs] = useState([]);
-  const [ideas, setIdeas] = useState([]);
+  // Persistent Live Data States - Real business data with offline-first local cache
+  const [finances, setFinances] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_finances_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [employees, setEmployees] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_employees_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [inventory, setInventory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_inventory_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [clients, setClients] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_clients_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [milestones, setMilestones] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_milestones_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [docs, setDocs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_docs_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [ideas, setIdeas] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chipinn_live_ideas_v1');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
 
   // Dynamic live computed overview from real business records
   const overview = useMemo(() => {
@@ -413,10 +448,10 @@ export default function OpsDashboard({ onExit }) {
           })
           .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         setFinances(liveFinances);
+        try { localStorage.setItem('chipinn_live_finances_v1', JSON.stringify(liveFinances)); } catch {}
       },
       (err) => {
-        console.warn('Finances listener:', err.message);
-        setFinances([]);
+        console.warn('Finances listener (offline/local fallback):', err.message);
       }
     );
 
@@ -440,10 +475,10 @@ export default function OpsDashboard({ onExit }) {
             );
           });
         setEmployees(liveEmployees);
+        try { localStorage.setItem('chipinn_live_employees_v1', JSON.stringify(liveEmployees)); } catch {}
       },
       (err) => {
-        console.warn('Employees listener:', err.message);
-        setEmployees([]);
+        console.warn('Employees listener (offline/local fallback):', err.message);
       }
     );
 
@@ -469,10 +504,10 @@ export default function OpsDashboard({ onExit }) {
             );
           });
         setInventory(liveInventory);
+        try { localStorage.setItem('chipinn_live_inventory_v1', JSON.stringify(liveInventory)); } catch {}
       },
       (err) => {
-        console.warn('Inventory listener:', err.message);
-        setInventory([]);
+        console.warn('Inventory listener (offline/local fallback):', err.message);
       }
     );
 
@@ -496,10 +531,10 @@ export default function OpsDashboard({ onExit }) {
             );
           });
         setMilestones(liveMilestones);
+        try { localStorage.setItem('chipinn_live_milestones_v1', JSON.stringify(liveMilestones)); } catch {}
       },
       (err) => {
-        console.warn('Milestones listener:', err.message);
-        setMilestones([]);
+        console.warn('Milestones listener (offline/local fallback):', err.message);
       }
     );
 
@@ -522,11 +557,11 @@ export default function OpsDashboard({ onExit }) {
             );
           });
         setDocs(liveDocs);
+        try { localStorage.setItem('chipinn_live_docs_v1', JSON.stringify(liveDocs)); } catch {}
         setIsLoading(false);
       },
       (err) => {
-        console.warn('Docs listener:', err.message);
-        setDocs([]);
+        console.warn('Docs listener (offline/local fallback):', err.message);
         setIsLoading(false);
       }
     );
@@ -547,10 +582,10 @@ export default function OpsDashboard({ onExit }) {
           return (b.created_at || '').localeCompare(a.created_at || '');
         });
         setIdeas(liveIdeas);
+        try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(liveIdeas)); } catch {}
       },
       (err) => {
-        console.warn('Ideas listener:', err.message);
-        setIdeas([]);
+        console.warn('Ideas listener (offline/local fallback):', err.message);
       }
     );
 
@@ -599,6 +634,7 @@ export default function OpsDashboard({ onExit }) {
       i.id === idea.id ? { ...i, status: newStatus, updated_at: new Date().toISOString() } : i
     );
     setIdeas(updated);
+    try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
     notify(isCurrentlyPaused ? `Resumed idea "${idea.title}"` : `Paused idea "${idea.title}"`);
     try {
       await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
@@ -606,7 +642,7 @@ export default function OpsDashboard({ onExit }) {
         updated_at: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Error toggling pause idea:', e);
+      console.warn('Error toggling pause idea (saved locally):', e);
     }
   };
 
@@ -615,6 +651,7 @@ export default function OpsDashboard({ onExit }) {
       i.id === idea.id ? { ...i, status: newStatus, updated_at: new Date().toISOString() } : i
     );
     setIdeas(updated);
+    try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
     notify(`Status set to ${newStatus}`);
     try {
       await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
@@ -622,7 +659,7 @@ export default function OpsDashboard({ onExit }) {
         updated_at: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Error updating idea status:', e);
+      console.warn('Error updating idea status (saved locally):', e);
     }
   };
 
@@ -634,13 +671,14 @@ export default function OpsDashboard({ onExit }) {
       i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
     );
     setIdeas(updated);
+    try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
     try {
       await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
         checklist: updatedChecklist,
         updated_at: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Error updating task:', e);
+      console.warn('Error updating task (saved locally):', e);
     }
   };
 
@@ -656,6 +694,7 @@ export default function OpsDashboard({ onExit }) {
       i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
     );
     setIdeas(updated);
+    try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
     setNewChecklistText(prev => ({ ...prev, [idea.id]: '' }));
     try {
       await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
@@ -664,7 +703,7 @@ export default function OpsDashboard({ onExit }) {
       });
       notify('Task step added');
     } catch (e) {
-      console.warn('Error adding task item:', e);
+      console.warn('Error adding task item (saved locally):', e);
     }
   };
 
@@ -674,13 +713,14 @@ export default function OpsDashboard({ onExit }) {
       i.id === idea.id ? { ...i, checklist: updatedChecklist, updated_at: new Date().toISOString() } : i
     );
     setIdeas(updated);
+    try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
     try {
       await updateDoc(doc(db, 'ops_ideas', idea.id.toString()), {
         checklist: updatedChecklist,
         updated_at: new Date().toISOString()
       });
     } catch (e) {
-      console.warn('Error deleting task item:', e);
+      console.warn('Error deleting task item (saved locally):', e);
     }
   };
 
@@ -688,11 +728,12 @@ export default function OpsDashboard({ onExit }) {
     if (window.confirm(`Delete innovation idea "${idea.title}"?`)) {
       const updated = ideas.filter((i) => i.id !== idea.id);
       setIdeas(updated);
+      try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
       notify(`Deleted "${idea.title}"`);
       try {
         await deleteDoc(doc(db, 'ops_ideas', idea.id.toString()));
       } catch (e) {
-        console.warn('Error deleting idea:', e);
+        console.warn('Error deleting idea (saved locally):', e);
       }
     }
   };
@@ -3355,9 +3396,13 @@ export default function OpsDashboard({ onExit }) {
                   token={token}
                   currentUser={currentUser}
                   onSuccess={(newIdea) => {
-                    if (newIdea) setIdeas([newIdea, ...ideas]);
+                    if (newIdea) {
+                      const updated = [newIdea, ...ideas.filter(i => i.id !== newIdea.id)];
+                      setIdeas(updated);
+                      try { localStorage.setItem('chipinn_live_ideas_v1', JSON.stringify(updated)); } catch {}
+                    }
                     setModalType(null);
-                    notify(`Idea "${newIdea.title}" added to Vault`);
+                    notify(`Idea "${newIdea.title}" saved to Vault`);
                   }}
                 />
               )}
@@ -4166,12 +4211,12 @@ function IdeaForm({ token, currentUser, onSuccess }) {
       createdAt: serverTimestamp()
     };
 
-    let docId = Date.now().toString();
+    let docId = 'idea_' + Date.now();
     try {
       const docRef = await addDoc(collection(db, 'ops_ideas'), payload);
       docId = docRef.id;
     } catch (err) {
-      console.warn('Firestore write idea fallback:', err);
+      console.warn('Firestore write idea fallback (persisted in local cache):', err);
     }
     onSuccess({ ...payload, id: docId, is_live_firestore: true });
   };
